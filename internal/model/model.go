@@ -25,10 +25,10 @@ func (s Status) String() string {
 // Transaction представляет сущность "Транзакция".
 type Transaction struct {
 	ID           uint64
-	UserID       uint64
 	Amount       uint64
 	CurrencyCode string
 	CreationTime time.Time
 	ModifiedTime time.Time
 	Status       Status
+	User         User
 }

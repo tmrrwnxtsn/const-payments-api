@@ -7,38 +7,38 @@ import (
 
 // Store представляет базу данных, в которой находятся таблицы сущностей "Пользователь" и "Транзакция".
 type Store interface {
-	Users() UsersRepository
-	Transactions() TransactionsRepository
+	Users() UserRepository
+	Transactions() TransactionRepository
 }
 
 type store struct {
-	db                     *sqlx.DB
-	logger                 log.Logger
-	usersRepository        UsersRepository
-	transactionsRepository TransactionsRepository
+	db                    *sqlx.DB
+	logger                log.Logger
+	userRepository        UserRepository
+	transactionRepository TransactionRepository
 }
 
-func New(db *sqlx.DB, logger log.Logger) Store {
+func NewStore(db *sqlx.DB, logger log.Logger) Store {
 	logger.Debug("a connection to the database has been established")
 	return &store{db: db, logger: logger}
 }
 
-func (s *store) Users() UsersRepository {
-	if s.usersRepository != nil {
-		return s.usersRepository
+func (s *store) Users() UserRepository {
+	if s.userRepository != nil {
+		return s.userRepository
 	}
 
-	s.usersRepository = NewUsersRepository(s)
+	s.userRepository = NewUserRepository(s)
 
-	return s.usersRepository
+	return s.userRepository
 }
 
-func (s *store) Transactions() TransactionsRepository {
-	if s.transactionsRepository != nil {
-		return s.transactionsRepository
+func (s *store) Transactions() TransactionRepository {
+	if s.transactionRepository != nil {
+		return s.transactionRepository
 	}
 
-	s.transactionsRepository = NewTransactionsRepository(s)
+	s.transactionRepository = NewTransactionRepository(s)
 
-	return s.transactionsRepository
+	return s.transactionRepository
 }

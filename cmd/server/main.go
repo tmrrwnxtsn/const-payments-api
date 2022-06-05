@@ -5,6 +5,7 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/config"
+	"github.com/tmrrwnxtsn/const-payments-api/internal/service"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/store"
 	logging "github.com/tmrrwnxtsn/const-payments-api/pkg/log"
 	"log"
@@ -34,5 +35,6 @@ func main() {
 	}
 	defer db.Close()
 
-	_ = store.New(db, logger)
+	st := store.NewStore(db, logger)
+	_ = service.NewService(st, logger)
 }
