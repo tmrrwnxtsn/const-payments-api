@@ -2,9 +2,12 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/jmoiron/sqlx"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/config"
-	"github.com/tmrrwnxtsn/const-payments-api/pkg/log"
+	"github.com/tmrrwnxtsn/const-payments-api/internal/store"
+	logging "github.com/tmrrwnxtsn/const-payments-api/pkg/log"
+	"log"
 	"os"
 )
 
@@ -13,13 +16,23 @@ var flagConfig = flag.String("config", "./configs/local.yaml", "path to config f
 func main() {
 	flag.Parse()
 
-	logger := log.New()
-
 	cfg, err := config.Load(*flagConfig)
 	if err != nil {
-		logger.Errorf("failed to load config data: %s", err)
+		log.Fatalf("failed to load config data: %s", err)
+	}
+
+	logger := logging.New()
+	if err = logger.SetLoggingLevel(cfg.LogLevel); err != nil {
+		logger.Errorf("failed to set logging level: %s", err)
 		os.Exit(-1)
 	}
 
-	fmt.Println(cfg.DSN, cfg.BindAddr)
+	db, err := sqlx.Connect("pgx", cfg.DSN)
+	if err != nil {
+		logger.Errorf("failed to establish database connection %s", err)
+		os.Exit(-1)
+	}
+	defer db.Close()
+
+	_ = store.New(db, logger)
 }

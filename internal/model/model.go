@@ -9,7 +9,7 @@ type User struct {
 }
 
 // Status представляет статус платежа (НОВЫЙ, УСПЕХ, НЕУСПЕХ, ОШИБКА).
-type Status int
+type Status uint32
 
 const (
 	New     Status = iota // НОВЫЙ
