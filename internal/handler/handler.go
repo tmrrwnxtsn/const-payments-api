@@ -8,11 +8,11 @@ import (
 
 // Handler представляет обработчик запросов к API.
 type Handler struct {
-	service service.Service
+	service *service.Services
 	logger  log.Logger
 }
 
-func NewHandler(services service.Service, logger log.Logger) *Handler {
+func NewHandler(services *service.Services, logger log.Logger) *Handler {
 	return &Handler{service: services, logger: logger}
 }
 

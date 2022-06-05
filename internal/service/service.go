@@ -5,18 +5,14 @@ import (
 	"github.com/tmrrwnxtsn/const-payments-api/pkg/log"
 )
 
-// Service представляет слой бизнес-логики.
-type Service interface {
-	TransactionService
+// Services представляет слой бизнес-логики.
+type Services struct {
+	TransactionService TransactionService
+	logger             log.Logger
 }
 
-type service struct {
-	TransactionService
-	logger log.Logger
-}
-
-func NewService(store store.Store, logger log.Logger) Service {
-	return &service{
+func NewServices(store store.Store, logger log.Logger) *Services {
+	return &Services{
 		TransactionService: NewTransactionService(store.Transactions()),
 		logger:             logger,
 	}

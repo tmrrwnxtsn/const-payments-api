@@ -1,12 +1,15 @@
 package handler
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/model"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/service"
 	"net/http"
 	"strconv"
 )
+
+var ErrIncorrectQueryParams = errors.New("incorrect query parameters data")
 
 // createTransaction создаёт платёж (транзакцию).
 func (h *Handler) createTransaction(c *gin.Context) {
@@ -20,11 +23,11 @@ func (h *Handler) createTransaction(c *gin.Context) {
 
 	var request createTransactionRequest
 	if err := c.BindJSON(&request); err != nil {
-		h.newErrorResponse(c, http.StatusBadRequest, "transaction data is incorrect")
+		h.newErrorResponse(c, http.StatusBadRequest, service.ErrIncorrectTransactionData)
 		return
 	}
 
-	transactionId, err := h.service.Create(model.Transaction{
+	transactionId, err := h.service.TransactionService.Create(model.Transaction{
 		UserID:       request.UserID,
 		UserEmail:    request.UserEmail,
 		Amount:       request.Amount,
@@ -33,11 +36,11 @@ func (h *Handler) createTransaction(c *gin.Context) {
 	})
 	if err != nil {
 		if err == service.ErrIncorrectTransactionData {
-			h.newErrorResponse(c, http.StatusBadRequest, err.Error())
+			h.newErrorResponse(c, http.StatusBadRequest, err)
 			return
 		}
 
-		h.newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		h.newErrorResponse(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -46,25 +49,25 @@ func (h *Handler) createTransaction(c *gin.Context) {
 	})
 }
 
+type getAllUserTransactionsResponse struct {
+	Data []model.Transaction `json:"data"`
+}
+
 // getAllUserTransactions возвращает список всех платежей (транзакций) пользователя по его id или email.
 func (h *Handler) getAllUserTransactions(c *gin.Context) {
-	type getAllUserTransactionsResponse struct {
-		Data []model.Transaction `json:"data"`
-	}
-
 	var transactions []model.Transaction
 
 	userIDStr := c.Query("user_id")
 	if userIDStr != "" {
 		userID, err := strconv.ParseUint(userIDStr, 10, 64)
 		if err != nil {
-			h.newErrorResponse(c, http.StatusBadRequest, "invalid id")
+			h.newErrorResponse(c, http.StatusBadRequest, ErrIncorrectQueryParams)
 			return
 		}
 
-		transactions, err = h.service.GetAllByUserID(userID)
+		transactions, err = h.service.TransactionService.GetAllByUserID(userID)
 		if err != nil {
-			h.newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			h.newErrorResponse(c, http.StatusInternalServerError, err)
 			return
 		}
 	}
@@ -72,9 +75,9 @@ func (h *Handler) getAllUserTransactions(c *gin.Context) {
 	userEmail := c.Query("user_email")
 	if userIDStr == "" && userEmail != "" {
 		var err error
-		transactions, err = h.service.GetAllByUserEmail(userEmail)
+		transactions, err = h.service.TransactionService.GetAllByUserEmail(userEmail)
 		if err != nil {
-			h.newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			h.newErrorResponse(c, http.StatusInternalServerError, err)
 			return
 		}
 	}

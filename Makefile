@@ -22,5 +22,12 @@ migrate-down:
 	@echo "Reverting local database to the last migration step..."
 	@migrate -path ./migrations -database "$(LOCAL_DSN)" down 1
 
+.PHONY: test
+test: ## запуск юнит-тестов
+	@go test -cover -covermode=count ./...
+
+.PHONY: test-cover
+test-cover: ## отобразить информацию о покрытии кода тестами
+	go test -cover -coverprofile=cover.out ./... && go tool cover -html=cover.out -o cover.html
 
 .DEFAULT_GOAL := run

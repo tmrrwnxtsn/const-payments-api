@@ -42,8 +42,8 @@ func main() {
 	}
 
 	st := store.NewStore(db, logger)
-	serv := service.NewService(st, logger)
-	router := handler.NewHandler(serv, logger)
+	services := service.NewServices(st, logger)
+	router := handler.NewHandler(services, logger)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
