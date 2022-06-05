@@ -1,4 +1,4 @@
-LOCAL_DSN ?= postgres://127.0.0.1/const_test?sslmode=disable&user=postgres&password=qwerty
+LOCAL_DSN ?= postgres://127.0.0.1/const_payments_db?sslmode=disable&user=postgres&password=qwerty
 
 .PHONY: tidy
 tidy:
@@ -14,12 +14,12 @@ run: build  ## запуск собранного бинарника API серв
 
 .PHONY: migrate-up
 migrate-up:
-	@echo "Запуск всех новых миграций на локальной базе данных..."
+	@echo "Running all new local database migrations..."
 	@migrate -path ./migrations -database "$(LOCAL_DSN)" up
 
 .PHONY: migrate-down
 migrate-down:
-	@echo "Откат базы данных к предыдущей миграции..."
+	@echo "Reverting local database to the last migration step..."
 	@migrate -path ./migrations -database "$(LOCAL_DSN)" down 1
 
 

@@ -1,14 +1,12 @@
 package model
 
-import "time"
+import (
+	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
+	"time"
+)
 
-// User представляет сущность "Пользователь".
-type User struct {
-	ID    uint64
-	Email string
-}
-
-// Status представляет статус платежа (НОВЫЙ, УСПЕХ, НЕУСПЕХ, ОШИБКА).
+// Status представляет статус транзакции (НОВЫЙ, УСПЕХ, НЕУСПЕХ, ОШИБКА).
 type Status uint32
 
 const (
@@ -22,13 +20,22 @@ func (s Status) String() string {
 	return [...]string{"НОВЫЙ", "УСПЕХ", "НЕУСПЕХ", "ОШИБКА"}[s]
 }
 
-// Transaction представляет сущность "Транзакция".
+// Transaction представляет транзакцию.
 type Transaction struct {
-	ID           uint64
-	Amount       uint64
-	CurrencyCode string
-	CreationTime time.Time
-	ModifiedTime time.Time
-	Status       Status
-	User         User
+	ID           uint64    `json:"id" db:"id"`
+	UserID       uint64    `json:"user_id" db:"user_id"`
+	UserEmail    string    `json:"user_email" db:"user_email"`
+	Amount       float64   `json:"amount" db:"amount"`
+	CurrencyCode string    `json:"currency_code" db:"currency_code"`
+	CreationTime time.Time `json:"creation_time" db:"creation_time"`
+	ModifiedTime time.Time `json:"modified_time" db:"modified_time"`
+	Status       Status    `json:"status" db:"status"`
+}
+
+// Validate проверяет информацию в транзакции на корректность.
+func (t Transaction) Validate() error {
+	return validation.ValidateStruct(t,
+		validation.Field(&t.Amount, validation.Required, validation.Min(0.0)),
+		validation.Field(&t.CurrencyCode, validation.Required, is.CurrencyCode),
+	)
 }

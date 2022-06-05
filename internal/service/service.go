@@ -5,7 +5,7 @@ import (
 	"github.com/tmrrwnxtsn/const-payments-api/pkg/log"
 )
 
-// Service представляет слой бизнес-логики, связанный с сущностями "Пользователь" и "Транзакция".
+// Service представляет слой бизнес-логики.
 type Service interface {
 	TransactionService
 }
@@ -17,10 +17,7 @@ type service struct {
 
 func NewService(store store.Store, logger log.Logger) Service {
 	return &service{
-		TransactionService: NewTransactionService(
-			store.Users(),
-			store.Transactions(),
-		),
-		logger: logger,
+		TransactionService: NewTransactionService(store.Transactions()),
+		logger:             logger,
 	}
 }
