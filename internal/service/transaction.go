@@ -2,16 +2,10 @@
 package service
 
 import (
-	"errors"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/model"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/store"
 	"math/rand"
 	"time"
-)
-
-var (
-	ErrIncorrectTransactionData  = errors.New("transaction data is incorrect")
-	ErrTerminalTransactionStatus = errors.New("terminal transaction status")
 )
 
 // TransactionService представляет бизнес-логику работы с транзакциями.

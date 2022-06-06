@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-// Logger представляет логгер, который поддерживает уровни логирования (debug, info, error).
+// Logger представляет логгер с уровнями логирования debug, info, error.
 type Logger interface {
 	// Debug использует fmt.Sprint, чтобы зафиксировать сообщение на уровне debug.
 	Debug(args ...interface{})

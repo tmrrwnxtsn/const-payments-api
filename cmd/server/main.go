@@ -9,7 +9,7 @@ import (
 	"github.com/tmrrwnxtsn/const-payments-api/internal/handler"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/server"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/service"
-	"github.com/tmrrwnxtsn/const-payments-api/internal/store"
+	"github.com/tmrrwnxtsn/const-payments-api/internal/store/sqlstore"
 	logging "github.com/tmrrwnxtsn/const-payments-api/pkg/log"
 	"log"
 	"net/http"
@@ -41,7 +41,7 @@ func main() {
 		os.Exit(-1)
 	}
 
-	st := store.NewStore(db, logger)
+	st := sqlstore.NewStore(db, logger)
 	services := service.NewServices(st, logger)
 	router := handler.NewHandler(services, logger)
 

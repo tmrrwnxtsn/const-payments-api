@@ -262,7 +262,7 @@ func TestHandler_getTransactionStatus(t *testing.T) {
 			transactionIDStr:     "abc",
 			mockBehavior:         func(s *mockservice.MockTransactionService, transactionIDStr string) {},
 			expectedStatusCode:   http.StatusBadRequest,
-			expectedResponseBody: `{"message":"invalid id"}`,
+			expectedResponseBody: `{"message":"invalid transaction id"}`,
 		},
 		{
 			name:             "service failure",
@@ -347,7 +347,7 @@ func TestHandler_changeTransactionStatus(t *testing.T) {
 			inputBody:            `{"status":"УСПЕХ"}`,
 			mockBehavior:         func(s *mockservice.MockTransactionService, transactionIDStr, statusStr string) {},
 			expectedStatusCode:   http.StatusBadRequest,
-			expectedResponseBody: `{"message":"invalid id"}`,
+			expectedResponseBody: `{"message":"invalid transaction id"}`,
 		},
 		{
 			name:             "terminal status",
@@ -432,7 +432,7 @@ func TestHandler_cancelTransaction(t *testing.T) {
 			transactionIDStr:     "abc",
 			mockBehavior:         func(s *mockservice.MockTransactionService, transactionIDStr string) {},
 			expectedStatusCode:   http.StatusBadRequest,
-			expectedResponseBody: `{"message":"invalid id"}`,
+			expectedResponseBody: `{"message":"invalid transaction id"}`,
 		},
 		{
 			name:             "terminal status",

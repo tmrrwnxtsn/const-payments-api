@@ -23,6 +23,8 @@ type Transaction struct {
 // Validate проверяет информацию в транзакции на корректность.
 func (t *Transaction) Validate() error {
 	return validation.ValidateStruct(t,
+		validation.Field(&t.UserID, validation.Required),
+		validation.Field(&t.UserEmail, validation.Required, is.Email),
 		validation.Field(&t.Amount, validation.Required, validation.Min(0.0)),
 		validation.Field(&t.CurrencyCode, validation.Required, is.CurrencyCode),
 	)
@@ -84,9 +86,9 @@ func (s Status) MarshalText() ([]byte, error) {
 const (
 	// StatusNew представляет статус "НОВЫЙ". Назначается при создании транзакции.
 	StatusNew Status = iota
-	// StatusSuccess представляет статус "УСПЕХ".
+	// StatusSuccess представляет статус "УСПЕХ". Терминальный.
 	StatusSuccess
-	// StatusFailure представляет статус "НЕУСПЕХ".
+	// StatusFailure представляет статус "НЕУСПЕХ". Терминальный.
 	StatusFailure
 	// StatusError представляет статус "ОШИБКА". Назначается при создании транзакции.
 	StatusError

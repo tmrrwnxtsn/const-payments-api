@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	envVariablesPrefix = "APP_"
+	EnvVariablesPrefix = "APP_"
 
 	defaultBindAddr = ":8080"
 	defaultLogLevel = "info"
@@ -42,7 +42,7 @@ func Load(yamlConfigPath string) (*Config, error) {
 	}
 
 	// загрузка переменных окружения с указанным префиксом
-	if err = env.New(envVariablesPrefix, nil).Load(&c); err != nil {
+	if err = env.New(EnvVariablesPrefix, nil).Load(&c); err != nil {
 		return nil, err
 	}
 

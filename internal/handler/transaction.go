@@ -1,17 +1,11 @@
 package handler
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/model"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/service"
 	"net/http"
 	"strconv"
-)
-
-var (
-	ErrInvalidQueryParams = errors.New("invalid query parameters data")
-	ErrInvalidID          = errors.New("invalid id")
 )
 
 // createTransaction создаёт платёж (транзакцию).
@@ -100,7 +94,7 @@ func (h *Handler) getTransactionStatus(c *gin.Context) {
 	}
 	transactionId, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		h.newErrorResponse(c, http.StatusBadRequest, ErrInvalidID)
+		h.newErrorResponse(c, http.StatusBadRequest, ErrInvalidTransactionID)
 		return
 	}
 
@@ -129,7 +123,7 @@ func (h *Handler) changeTransactionStatus(c *gin.Context) {
 
 	transactionId, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		h.newErrorResponse(c, http.StatusBadRequest, ErrInvalidID)
+		h.newErrorResponse(c, http.StatusBadRequest, ErrInvalidTransactionID)
 		return
 	}
 
@@ -151,7 +145,7 @@ func (h *Handler) changeTransactionStatus(c *gin.Context) {
 func (h *Handler) cancelTransaction(c *gin.Context) {
 	transactionId, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		h.newErrorResponse(c, http.StatusBadRequest, ErrInvalidID)
+		h.newErrorResponse(c, http.StatusBadRequest, ErrInvalidTransactionID)
 		return
 	}
 
