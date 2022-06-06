@@ -22,10 +22,12 @@ type TransactionService interface {
 	GetAllByUserID(userID uint64) ([]model.Transaction, error)
 	// GetAllByUserEmail возвращает информацию о транзакциях пользователя по его email.
 	GetAllByUserEmail(userEmail string) ([]model.Transaction, error)
-	// GetStatus возвращает статус транзакции по её id.
+	// GetStatus возвращает статус транзакции по её ID.
 	GetStatus(transactionID uint64) (model.Status, error)
-	// ChangeStatus изменяет статус транзакции по её id.
+	// ChangeStatus изменяет статус транзакции по её ID.
 	ChangeStatus(transactionID uint64, status model.Status) error
+	// Cancel отменяет транзакцию по её ID.
+	Cancel(transactionID uint64) error
 }
 
 type transactionService struct {
@@ -78,4 +80,18 @@ func (s *transactionService) ChangeStatus(transactionID uint64, status model.Sta
 	}
 
 	return s.transactionRepository.ChangeStatus(transaction.ID, status)
+}
+
+func (s *transactionService) Cancel(transactionID uint64) error {
+	transaction, err := s.transactionRepository.GetByID(transactionID)
+	if err != nil {
+		return err
+	}
+
+	// статусы УСПЕХ и НЕУСПЕХ являются терминальными: если платеж находится в них, его статус невозможно отменить
+	if transaction.Status == model.StatusSuccess || transaction.Status == model.StatusFailure {
+		return ErrTerminalTransactionStatus
+	}
+
+	return s.transactionRepository.Delete(transactionID)
 }

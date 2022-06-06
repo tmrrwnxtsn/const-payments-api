@@ -328,8 +328,8 @@ func TestHandler_changeTransactionStatus(t *testing.T) {
 				status, _ := model.ParseStatus(statusStr)
 				s.EXPECT().ChangeStatus(transactionID, status).Return(nil)
 			},
-			expectedStatusCode:   http.StatusNoContent,
-			expectedResponseBody: "",
+			expectedStatusCode:   http.StatusOK,
+			expectedResponseBody: `{"status":"ok"}`,
 		},
 		{
 			name:                 "invalid status",
@@ -395,6 +395,85 @@ func TestHandler_changeTransactionStatus(t *testing.T) {
 				"PATCH",
 				fmt.Sprintf("/api/transactions/%s/status", tt.transactionIDStr),
 				bytes.NewBufferString(tt.inputBody),
+			)
+
+			router.ServeHTTP(responseRecorder, request)
+
+			assert.Equal(t, tt.expectedStatusCode, responseRecorder.Code)
+			assert.Equal(t, tt.expectedResponseBody, responseRecorder.Body.String())
+		})
+	}
+}
+
+func TestHandler_cancelTransaction(t *testing.T) {
+	type mockBehavior func(s *mockservice.MockTransactionService, transactionIDStr string)
+
+	logger := log.New()
+
+	tests := []struct {
+		name                 string
+		transactionIDStr     string
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:             "ok",
+			transactionIDStr: "10",
+			mockBehavior: func(s *mockservice.MockTransactionService, transactionIDStr string) {
+				transactionID, _ := strconv.ParseUint(transactionIDStr, 10, 64)
+				s.EXPECT().Cancel(transactionID).Return(nil)
+			},
+			expectedStatusCode:   http.StatusOK,
+			expectedResponseBody: `{"status":"ok"}`,
+		},
+		{
+			name:                 "invalid id",
+			transactionIDStr:     "abc",
+			mockBehavior:         func(s *mockservice.MockTransactionService, transactionIDStr string) {},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"message":"invalid id"}`,
+		},
+		{
+			name:             "terminal status",
+			transactionIDStr: "10",
+			mockBehavior: func(s *mockservice.MockTransactionService, transactionIDStr string) {
+				transactionID, _ := strconv.ParseUint(transactionIDStr, 10, 64)
+				s.EXPECT().Cancel(transactionID).Return(service.ErrTerminalTransactionStatus)
+			},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"message":"terminal transaction status"}`,
+		},
+		{
+			name:             "service failure",
+			transactionIDStr: "10",
+			mockBehavior: func(s *mockservice.MockTransactionService, transactionIDStr string) {
+				transactionID, _ := strconv.ParseUint(transactionIDStr, 10, 64)
+				s.EXPECT().Cancel(transactionID).Return(errors.New("service failure"))
+			},
+			expectedStatusCode:   http.StatusInternalServerError,
+			expectedResponseBody: `{"message":"service failure"}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			mockTransactionService := mockservice.NewMockTransactionService(c)
+			tt.mockBehavior(mockTransactionService, tt.transactionIDStr)
+
+			services := &service.Services{TransactionService: mockTransactionService}
+			handler := NewHandler(services, logger)
+
+			router := gin.New()
+			router.DELETE("api/transactions/:id", handler.cancelTransaction)
+
+			responseRecorder := httptest.NewRecorder()
+			request := httptest.NewRequest(
+				"DELETE",
+				fmt.Sprintf("/api/transactions/%s", tt.transactionIDStr),
+				nil,
 			)
 
 			router.ServeHTTP(responseRecorder, request)

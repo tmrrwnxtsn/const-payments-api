@@ -34,6 +34,20 @@ func (m *MockTransactionService) EXPECT() *MockTransactionServiceMockRecorder {
 	return m.recorder
 }
 
+// Cancel mocks base method.
+func (m *MockTransactionService) Cancel(transactionID uint64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Cancel", transactionID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Cancel indicates an expected call of Cancel.
+func (mr *MockTransactionServiceMockRecorder) Cancel(transactionID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Cancel", reflect.TypeOf((*MockTransactionService)(nil).Cancel), transactionID)
+}
+
 // ChangeStatus mocks base method.
 func (m *MockTransactionService) ChangeStatus(transactionID uint64, status model.Status) error {
 	m.ctrl.T.Helper()

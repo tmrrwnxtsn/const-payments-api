@@ -23,6 +23,8 @@ type TransactionRepository interface {
 	GetByID(transactionID uint64) (model.Transaction, error)
 	// ChangeStatus изменяет статус транзакции по её ID.
 	ChangeStatus(transactionID uint64, status model.Status) error
+	// Delete удаляет транзакцию из БД по её ID.
+	Delete(transactionID uint64) error
 }
 
 type transactionRepository struct {
@@ -101,5 +103,15 @@ func (r *transactionRepository) ChangeStatus(transactionID uint64, status model.
 	)
 
 	_, err := r.store.db.Exec(updateTransactionQuery, status, transactionID)
+	return err
+}
+
+func (r *transactionRepository) Delete(transactionID uint64) error {
+	deleteTransactionQuery := fmt.Sprintf(
+		"DELETE FROM %s WHERE id = $1",
+		transactionTable,
+	)
+
+	_, err := r.store.db.Exec(deleteTransactionQuery, transactionID)
 	return err
 }
