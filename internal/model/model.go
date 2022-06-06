@@ -1,24 +1,12 @@
 package model
 
 import (
+	"fmt"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
+	"strings"
 	"time"
 )
-
-// Status представляет статус транзакции (НОВЫЙ, УСПЕХ, НЕУСПЕХ, ОШИБКА).
-type Status uint32
-
-const (
-	New     Status = iota // НОВЫЙ
-	Success               // УСПЕХ
-	Failure               // НЕУСПЕХ
-	Error                 // ОШИБКА
-)
-
-func (s Status) String() string {
-	return [...]string{"НОВЫЙ", "УСПЕХ", "НЕУСПЕХ", "ОШИБКА"}[s]
-}
 
 // Transaction представляет транзакцию.
 type Transaction struct {
@@ -39,3 +27,67 @@ func (t Transaction) Validate() error {
 		validation.Field(&t.CurrencyCode, validation.Required, is.CurrencyCode),
 	)
 }
+
+// Status представляет статус транзакции.
+type Status uint32
+
+// String конвертирует Status в строковое представление. Например, StatusNew преобразуется в "НОВЫЙ".
+func (s Status) String() string {
+	if b, err := s.MarshalText(); err == nil {
+		return string(b)
+	} else {
+		return "НЕИЗВЕСТНО"
+	}
+}
+
+// ParseStatus принимает статус в строковой форме и возвращает соответствующую константу типа Status.
+func ParseStatus(status string) (Status, error) {
+	switch strings.ToLower(status) {
+	case "новый":
+		return StatusNew, nil
+	case "успех":
+		return StatusSuccess, nil
+	case "неуспех":
+		return StatusFailure, nil
+	case "ошибка":
+		return StatusError, nil
+	}
+	var l Status
+	return l, fmt.Errorf("not a valid transaction status: %q", status)
+}
+
+// UnmarshalText реализует encoding.TextUnmarshaler.
+func (s *Status) UnmarshalText(text []byte) error {
+	status, err := ParseStatus(string(text))
+	if err != nil {
+		return err
+	}
+	*s = status
+	return nil
+}
+
+// MarshalText реализует encoding.TextMarshaler.
+func (s Status) MarshalText() ([]byte, error) {
+	switch s {
+	case StatusNew:
+		return []byte("НОВЫЙ"), nil
+	case StatusSuccess:
+		return []byte("УСПЕХ"), nil
+	case StatusFailure:
+		return []byte("НЕУСПЕХ"), nil
+	case StatusError:
+		return []byte("ОШИБКА"), nil
+	}
+	return nil, fmt.Errorf("not a valid transaction status %d", s)
+}
+
+const (
+	// StatusNew представляет статус "НОВЫЙ". Назначается при создании транзакции.
+	StatusNew Status = iota
+	// StatusSuccess представляет статус "УСПЕХ".
+	StatusSuccess
+	// StatusFailure представляет статус "НЕУСПЕХ".
+	StatusFailure
+	// StatusError представляет статус "ОШИБКА". Назначается при создании транзакции.
+	StatusError
+)

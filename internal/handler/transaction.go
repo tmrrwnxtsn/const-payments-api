@@ -32,7 +32,7 @@ func (h *Handler) createTransaction(c *gin.Context) {
 		UserEmail:    request.UserEmail,
 		Amount:       request.Amount,
 		CurrencyCode: request.CurrencyCode,
-		Status:       model.New,
+		Status:       model.StatusNew,
 	})
 	if err != nil {
 		if err == service.ErrIncorrectTransactionData {

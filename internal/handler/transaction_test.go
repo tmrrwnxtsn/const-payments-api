@@ -125,7 +125,7 @@ func TestHandler_getAllUserTransactions(t *testing.T) {
 			CurrencyCode: "USD",
 			CreationTime: time.Date(2022, 6, 5, 12, 12, 12, 12, time.UTC),
 			ModifiedTime: time.Date(2022, 6, 5, 12, 12, 12, 12, time.UTC),
-			Status:       model.New,
+			Status:       model.StatusNew,
 		},
 		{
 			ID:           4,
@@ -135,7 +135,7 @@ func TestHandler_getAllUserTransactions(t *testing.T) {
 			CurrencyCode: "USD",
 			CreationTime: time.Date(2022, 6, 5, 12, 12, 12, 12, time.UTC),
 			ModifiedTime: time.Date(2022, 6, 5, 12, 12, 12, 12, time.UTC),
-			Status:       model.Error,
+			Status:       model.StatusError,
 		},
 	}
 

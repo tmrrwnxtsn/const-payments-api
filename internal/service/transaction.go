@@ -37,7 +37,7 @@ func (s *transactionService) Create(transaction model.Transaction) (uint64, erro
 	// случайное количество платежей при создании переходит в статус "ОШИБКА"
 	rand.Seed(time.Now().UnixNano())
 	if n := rand.Int(); n%8 == 0 {
-		transaction.Status = model.Error
+		transaction.Status = model.StatusError
 	}
 
 	return s.transactionRepository.Create(transaction)
