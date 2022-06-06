@@ -34,6 +34,20 @@ func (m *MockTransactionService) EXPECT() *MockTransactionServiceMockRecorder {
 	return m.recorder
 }
 
+// ChangeStatus mocks base method.
+func (m *MockTransactionService) ChangeStatus(transactionID uint64, status model.Status) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangeStatus", transactionID, status)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeStatus indicates an expected call of ChangeStatus.
+func (mr *MockTransactionServiceMockRecorder) ChangeStatus(transactionID, status interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeStatus", reflect.TypeOf((*MockTransactionService)(nil).ChangeStatus), transactionID, status)
+}
+
 // Create mocks base method.
 func (m *MockTransactionService) Create(transaction model.Transaction) (uint64, error) {
 	m.ctrl.T.Helper()

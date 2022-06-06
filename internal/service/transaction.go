@@ -9,7 +9,10 @@ import (
 	"time"
 )
 
-var ErrIncorrectTransactionData = errors.New("transaction data is incorrect")
+var (
+	ErrIncorrectTransactionData  = errors.New("transaction data is incorrect")
+	ErrTerminalTransactionStatus = errors.New("terminal transaction status")
+)
 
 // TransactionService представляет бизнес-логику работы с транзакциями.
 type TransactionService interface {
@@ -21,6 +24,8 @@ type TransactionService interface {
 	GetAllByUserEmail(userEmail string) ([]model.Transaction, error)
 	// GetStatus возвращает статус транзакции по её id.
 	GetStatus(transactionID uint64) (model.Status, error)
+	// ChangeStatus изменяет статус транзакции по её id.
+	ChangeStatus(transactionID uint64, status model.Status) error
 }
 
 type transactionService struct {
@@ -59,4 +64,18 @@ func (s *transactionService) GetStatus(transactionID uint64) (model.Status, erro
 		return 0, err
 	}
 	return transaction.Status, nil
+}
+
+func (s *transactionService) ChangeStatus(transactionID uint64, status model.Status) error {
+	transaction, err := s.transactionRepository.GetByID(transactionID)
+	if err != nil {
+		return err
+	}
+
+	// статусы УСПЕХ и НЕУСПЕХ являются терминальными: если платеж находится в них, его статус невозможно изменить
+	if transaction.Status == model.StatusSuccess || transaction.Status == model.StatusFailure {
+		return ErrTerminalTransactionStatus
+	}
+
+	return s.transactionRepository.ChangeStatus(transaction.ID, status)
 }

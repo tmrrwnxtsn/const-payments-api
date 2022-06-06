@@ -21,6 +21,8 @@ type TransactionRepository interface {
 	GetAllByUserEmail(userEmail string) ([]model.Transaction, error)
 	// GetByID возвращает транзакцию по её ID.
 	GetByID(transactionID uint64) (model.Transaction, error)
+	// ChangeStatus изменяет статус транзакции по её ID.
+	ChangeStatus(transactionID uint64, status model.Status) error
 }
 
 type transactionRepository struct {
@@ -90,4 +92,14 @@ func (r *transactionRepository) GetByID(transactionID uint64) (model.Transaction
 		return model.Transaction{}, err
 	}
 	return transaction, nil
+}
+
+func (r *transactionRepository) ChangeStatus(transactionID uint64, status model.Status) error {
+	updateTransactionQuery := fmt.Sprintf(
+		"UPDATE %s SET status = $1 WHERE id = $2",
+		transactionTable,
+	)
+
+	_, err := r.store.db.Exec(updateTransactionQuery, status, transactionID)
+	return err
 }

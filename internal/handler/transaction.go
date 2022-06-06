@@ -108,3 +108,33 @@ func (h *Handler) getTransactionStatus(c *gin.Context) {
 		"status": status,
 	})
 }
+
+// changeTransactionStatus обновляет статус транзакции по её ID.
+func (h *Handler) changeTransactionStatus(c *gin.Context) {
+	type updateTransactionStatusRequest struct {
+		Status model.Status `json:"status"`
+	}
+
+	var request updateTransactionStatusRequest
+	if err := c.BindJSON(&request); err != nil {
+		h.newErrorResponse(c, http.StatusBadRequest, service.ErrIncorrectTransactionData)
+		return
+	}
+
+	transactionId, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		h.newErrorResponse(c, http.StatusBadRequest, ErrInvalidId)
+		return
+	}
+
+	if err = h.service.TransactionService.ChangeStatus(transactionId, request.Status); err != nil {
+		if err == service.ErrTerminalTransactionStatus {
+			h.newErrorResponse(c, http.StatusBadRequest, err)
+			return
+		}
+		h.newErrorResponse(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}

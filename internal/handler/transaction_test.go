@@ -236,40 +236,40 @@ func TestHandler_getAllUserTransactions(t *testing.T) {
 }
 
 func TestHandler_getTransactionStatus(t *testing.T) {
-	type mockBehavior func(s *mockservice.MockTransactionService, transactionID string)
+	type mockBehavior func(s *mockservice.MockTransactionService, transactionIDStr string)
 
 	logger := log.New()
 
 	tests := []struct {
 		name                 string
-		transactionID        string
+		transactionIDStr     string
 		mockBehavior         mockBehavior
 		expectedStatusCode   int
 		expectedResponseBody string
 	}{
 		{
-			name:          "ok",
-			transactionID: "10",
-			mockBehavior: func(s *mockservice.MockTransactionService, transactionID string) {
-				id, _ := strconv.ParseUint(transactionID, 10, 64)
-				s.EXPECT().GetStatus(id).Return(model.StatusNew, nil)
+			name:             "ok",
+			transactionIDStr: "10",
+			mockBehavior: func(s *mockservice.MockTransactionService, transactionIDStr string) {
+				transactionID, _ := strconv.ParseUint(transactionIDStr, 10, 64)
+				s.EXPECT().GetStatus(transactionID).Return(model.StatusNew, nil)
 			},
 			expectedStatusCode:   http.StatusOK,
 			expectedResponseBody: `{"status":"НОВЫЙ"}`,
 		},
 		{
 			name:                 "invalid id",
-			transactionID:        "abc",
-			mockBehavior:         func(s *mockservice.MockTransactionService, transactionID string) {},
+			transactionIDStr:     "abc",
+			mockBehavior:         func(s *mockservice.MockTransactionService, transactionIDStr string) {},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{"message":"invalid id"}`,
 		},
 		{
-			name:          "service failure",
-			transactionID: "10",
-			mockBehavior: func(s *mockservice.MockTransactionService, transactionID string) {
-				id, _ := strconv.ParseUint(transactionID, 10, 64)
-				s.EXPECT().GetStatus(id).Return(model.Status(0), errors.New("service failure"))
+			name:             "service failure",
+			transactionIDStr: "10",
+			mockBehavior: func(s *mockservice.MockTransactionService, transactionIDStr string) {
+				transactionID, _ := strconv.ParseUint(transactionIDStr, 10, 64)
+				s.EXPECT().GetStatus(transactionID).Return(model.Status(0), errors.New("service failure"))
 			},
 			expectedStatusCode:   http.StatusInternalServerError,
 			expectedResponseBody: `{"message":"service failure"}`,
@@ -281,7 +281,7 @@ func TestHandler_getTransactionStatus(t *testing.T) {
 			defer c.Finish()
 
 			mockTransactionService := mockservice.NewMockTransactionService(c)
-			tt.mockBehavior(mockTransactionService, tt.transactionID)
+			tt.mockBehavior(mockTransactionService, tt.transactionIDStr)
 
 			services := &service.Services{TransactionService: mockTransactionService}
 			handler := NewHandler(services, logger)
@@ -292,8 +292,109 @@ func TestHandler_getTransactionStatus(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 			request := httptest.NewRequest(
 				"GET",
-				fmt.Sprintf("/api/transactions/%s/status", tt.transactionID),
+				fmt.Sprintf("/api/transactions/%s/status", tt.transactionIDStr),
 				nil,
+			)
+
+			router.ServeHTTP(responseRecorder, request)
+
+			assert.Equal(t, tt.expectedStatusCode, responseRecorder.Code)
+			assert.Equal(t, tt.expectedResponseBody, responseRecorder.Body.String())
+		})
+	}
+}
+
+func TestHandler_changeTransactionStatus(t *testing.T) {
+	type mockBehavior func(s *mockservice.MockTransactionService, transactionIDStr, statusStr string)
+
+	logger := log.New()
+
+	tests := []struct {
+		name                 string
+		transactionIDStr     string
+		statusStr            string
+		inputBody            string
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:             "ok",
+			transactionIDStr: "10",
+			statusStr:        "УСПЕХ",
+			inputBody:        `{"status":"УСПЕХ"}`,
+			mockBehavior: func(s *mockservice.MockTransactionService, transactionIDStr, statusStr string) {
+				transactionID, _ := strconv.ParseUint(transactionIDStr, 10, 64)
+				status, _ := model.ParseStatus(statusStr)
+				s.EXPECT().ChangeStatus(transactionID, status).Return(nil)
+			},
+			expectedStatusCode:   http.StatusNoContent,
+			expectedResponseBody: "",
+		},
+		{
+			name:                 "invalid status",
+			transactionIDStr:     "10",
+			statusStr:            "ЧТО ЗА СТАТУС",
+			inputBody:            `{"status":"ЧТО ЗА СТАТУС"}`,
+			mockBehavior:         func(s *mockservice.MockTransactionService, transactionIDStr, statusStr string) {},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"message":"transaction data is incorrect"}`,
+		},
+		{
+			name:                 "invalid id",
+			transactionIDStr:     "abs",
+			statusStr:            "УСПЕХ",
+			inputBody:            `{"status":"УСПЕХ"}`,
+			mockBehavior:         func(s *mockservice.MockTransactionService, transactionIDStr, statusStr string) {},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"message":"invalid id"}`,
+		},
+		{
+			name:             "terminal status",
+			transactionIDStr: "10",
+			statusStr:        "УСПЕХ",
+			inputBody:        `{"status":"УСПЕХ"}`,
+			mockBehavior: func(s *mockservice.MockTransactionService, transactionIDStr, statusStr string) {
+				transactionID, _ := strconv.ParseUint(transactionIDStr, 10, 64)
+				status, _ := model.ParseStatus(statusStr)
+				s.EXPECT().ChangeStatus(transactionID, status).Return(service.ErrTerminalTransactionStatus)
+			},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"message":"terminal transaction status"}`,
+		},
+		{
+			name:             "service failure",
+			transactionIDStr: "10",
+			statusStr:        "УСПЕХ",
+			inputBody:        `{"status":"УСПЕХ"}`,
+			mockBehavior: func(s *mockservice.MockTransactionService, transactionIDStr, statusStr string) {
+				transactionID, _ := strconv.ParseUint(transactionIDStr, 10, 64)
+				status, _ := model.ParseStatus(statusStr)
+				s.EXPECT().ChangeStatus(transactionID, status).Return(errors.New("service failure"))
+			},
+			expectedStatusCode:   http.StatusInternalServerError,
+			expectedResponseBody: `{"message":"service failure"}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			mockTransactionService := mockservice.NewMockTransactionService(c)
+			tt.mockBehavior(mockTransactionService, tt.transactionIDStr, tt.statusStr)
+
+			services := &service.Services{TransactionService: mockTransactionService}
+			handler := NewHandler(services, logger)
+
+			router := gin.New()
+			router.PATCH("api/transactions/:id/status", handler.changeTransactionStatus)
+
+			responseRecorder := httptest.NewRecorder()
+			request := httptest.NewRequest(
+				"PATCH",
+				fmt.Sprintf("/api/transactions/%s/status", tt.transactionIDStr),
+				bytes.NewBufferString(tt.inputBody),
 			)
 
 			router.ServeHTTP(responseRecorder, request)
