@@ -21,7 +21,7 @@ type Transaction struct {
 }
 
 // Validate проверяет информацию в транзакции на корректность.
-func (t Transaction) Validate() error {
+func (t *Transaction) Validate() error {
 	return validation.ValidateStruct(t,
 		validation.Field(&t.Amount, validation.Required, validation.Min(0.0)),
 		validation.Field(&t.CurrencyCode, validation.Required, is.CurrencyCode),

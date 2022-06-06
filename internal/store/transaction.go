@@ -1,11 +1,15 @@
 package store
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/model"
 )
 
 const transactionTable = "transactions"
+
+var ErrTransactionNotFound = errors.New("transaction not found")
 
 // TransactionRepository представляет таблицу транзакций в базе данных.
 type TransactionRepository interface {
@@ -15,6 +19,8 @@ type TransactionRepository interface {
 	GetAllByUserID(userID uint64) ([]model.Transaction, error)
 	// GetAllByUserEmail возвращает список транзакций пользователя по его ID.
 	GetAllByUserEmail(userEmail string) ([]model.Transaction, error)
+	// GetByID возвращает транзакцию по её ID.
+	GetByID(transactionID uint64) (model.Transaction, error)
 }
 
 type transactionRepository struct {
@@ -68,4 +74,20 @@ func (r *transactionRepository) GetAllByUserEmail(userEmail string) ([]model.Tra
 		return nil, err
 	}
 	return transactions, nil
+}
+
+func (r *transactionRepository) GetByID(transactionID uint64) (model.Transaction, error) {
+	getTransactionByIdQuery := fmt.Sprintf(
+		"SELECT * FROM %s WHERE id = $1",
+		transactionTable)
+
+	var transaction model.Transaction
+	err := r.store.db.Get(&transaction, getTransactionByIdQuery, transactionID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return model.Transaction{}, ErrTransactionNotFound
+		}
+		return model.Transaction{}, err
+	}
+	return transaction, nil
 }

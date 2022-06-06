@@ -78,3 +78,18 @@ func (mr *MockTransactionServiceMockRecorder) GetAllByUserID(userID interface{})
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllByUserID", reflect.TypeOf((*MockTransactionService)(nil).GetAllByUserID), userID)
 }
+
+// GetStatus mocks base method.
+func (m *MockTransactionService) GetStatus(transactionID uint64) (model.Status, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStatus", transactionID)
+	ret0, _ := ret[0].(model.Status)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStatus indicates an expected call of GetStatus.
+func (mr *MockTransactionServiceMockRecorder) GetStatus(transactionID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatus", reflect.TypeOf((*MockTransactionService)(nil).GetStatus), transactionID)
+}

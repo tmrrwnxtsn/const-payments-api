@@ -158,7 +158,7 @@ func TestHandler_getAllUserTransactions(t *testing.T) {
 				s.EXPECT().GetAllByUserID(userID).Return(testData, nil)
 			},
 			expectedStatusCode:   http.StatusOK,
-			expectedResponseBody: `{"data":[{"id":3,"user_id":13,"user_email":"tmrrwnxtsn@gmail.com","amount":255,"currency_code":"USD","creation_time":"2022-06-05T12:12:12.000000012Z","modified_time":"2022-06-05T12:12:12.000000012Z","status":0},{"id":4,"user_id":13,"user_email":"tmrrwnxtsn@gmail.com","amount":123,"currency_code":"USD","creation_time":"2022-06-05T12:12:12.000000012Z","modified_time":"2022-06-05T12:12:12.000000012Z","status":3}]}`,
+			expectedResponseBody: `{"data":[{"id":3,"user_id":13,"user_email":"tmrrwnxtsn@gmail.com","amount":255,"currency_code":"USD","creation_time":"2022-06-05T12:12:12.000000012Z","modified_time":"2022-06-05T12:12:12.000000012Z","status":"НОВЫЙ"},{"id":4,"user_id":13,"user_email":"tmrrwnxtsn@gmail.com","amount":123,"currency_code":"USD","creation_time":"2022-06-05T12:12:12.000000012Z","modified_time":"2022-06-05T12:12:12.000000012Z","status":"ОШИБКА"}]}`,
 		},
 		{
 			name:            "ok with user_email",
@@ -168,7 +168,7 @@ func TestHandler_getAllUserTransactions(t *testing.T) {
 				s.EXPECT().GetAllByUserEmail(queryParamValue).Return(testData, nil)
 			},
 			expectedStatusCode:   http.StatusOK,
-			expectedResponseBody: `{"data":[{"id":3,"user_id":13,"user_email":"tmrrwnxtsn@gmail.com","amount":255,"currency_code":"USD","creation_time":"2022-06-05T12:12:12.000000012Z","modified_time":"2022-06-05T12:12:12.000000012Z","status":0},{"id":4,"user_id":13,"user_email":"tmrrwnxtsn@gmail.com","amount":123,"currency_code":"USD","creation_time":"2022-06-05T12:12:12.000000012Z","modified_time":"2022-06-05T12:12:12.000000012Z","status":3}]}`,
+			expectedResponseBody: `{"data":[{"id":3,"user_id":13,"user_email":"tmrrwnxtsn@gmail.com","amount":255,"currency_code":"USD","creation_time":"2022-06-05T12:12:12.000000012Z","modified_time":"2022-06-05T12:12:12.000000012Z","status":"НОВЫЙ"},{"id":4,"user_id":13,"user_email":"tmrrwnxtsn@gmail.com","amount":123,"currency_code":"USD","creation_time":"2022-06-05T12:12:12.000000012Z","modified_time":"2022-06-05T12:12:12.000000012Z","status":"ОШИБКА"}]}`,
 		},
 		{
 			name:                 "ok without params",
@@ -182,7 +182,7 @@ func TestHandler_getAllUserTransactions(t *testing.T) {
 			queryParamValue:      "-ABS",
 			mockBehavior:         func(s *mockservice.MockTransactionService, queryParamValue string) {},
 			expectedStatusCode:   http.StatusBadRequest,
-			expectedResponseBody: `{"message":"incorrect query parameters data"}`,
+			expectedResponseBody: `{"message":"invalid query parameters data"}`,
 		},
 		{
 			name:            "service failure with user_id",
@@ -224,6 +224,75 @@ func TestHandler_getAllUserTransactions(t *testing.T) {
 			request := httptest.NewRequest(
 				"GET",
 				fmt.Sprintf("/api/transactions/?%s=%s", tt.queryParamName, tt.queryParamValue),
+				nil,
+			)
+
+			router.ServeHTTP(responseRecorder, request)
+
+			assert.Equal(t, tt.expectedStatusCode, responseRecorder.Code)
+			assert.Equal(t, tt.expectedResponseBody, responseRecorder.Body.String())
+		})
+	}
+}
+
+func TestHandler_getTransactionStatus(t *testing.T) {
+	type mockBehavior func(s *mockservice.MockTransactionService, transactionID string)
+
+	logger := log.New()
+
+	tests := []struct {
+		name                 string
+		transactionID        string
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:          "ok",
+			transactionID: "10",
+			mockBehavior: func(s *mockservice.MockTransactionService, transactionID string) {
+				id, _ := strconv.ParseUint(transactionID, 10, 64)
+				s.EXPECT().GetStatus(id).Return(model.StatusNew, nil)
+			},
+			expectedStatusCode:   http.StatusOK,
+			expectedResponseBody: `{"status":"НОВЫЙ"}`,
+		},
+		{
+			name:                 "invalid id",
+			transactionID:        "abc",
+			mockBehavior:         func(s *mockservice.MockTransactionService, transactionID string) {},
+			expectedStatusCode:   http.StatusBadRequest,
+			expectedResponseBody: `{"message":"invalid id"}`,
+		},
+		{
+			name:          "service failure",
+			transactionID: "10",
+			mockBehavior: func(s *mockservice.MockTransactionService, transactionID string) {
+				id, _ := strconv.ParseUint(transactionID, 10, 64)
+				s.EXPECT().GetStatus(id).Return(model.Status(0), errors.New("service failure"))
+			},
+			expectedStatusCode:   http.StatusInternalServerError,
+			expectedResponseBody: `{"message":"service failure"}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			mockTransactionService := mockservice.NewMockTransactionService(c)
+			tt.mockBehavior(mockTransactionService, tt.transactionID)
+
+			services := &service.Services{TransactionService: mockTransactionService}
+			handler := NewHandler(services, logger)
+
+			router := gin.New()
+			router.GET("api/transactions/:id/status", handler.getTransactionStatus)
+
+			responseRecorder := httptest.NewRecorder()
+			request := httptest.NewRequest(
+				"GET",
+				fmt.Sprintf("/api/transactions/%s/status", tt.transactionID),
 				nil,
 			)
 

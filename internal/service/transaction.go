@@ -19,6 +19,8 @@ type TransactionService interface {
 	GetAllByUserID(userID uint64) ([]model.Transaction, error)
 	// GetAllByUserEmail возвращает информацию о транзакциях пользователя по его email.
 	GetAllByUserEmail(userEmail string) ([]model.Transaction, error)
+	// GetStatus возвращает статус транзакции по её id.
+	GetStatus(transactionID uint64) (model.Status, error)
 }
 
 type transactionService struct {
@@ -49,4 +51,12 @@ func (s *transactionService) GetAllByUserID(userID uint64) ([]model.Transaction,
 
 func (s *transactionService) GetAllByUserEmail(userEmail string) ([]model.Transaction, error) {
 	return s.transactionRepository.GetAllByUserEmail(userEmail)
+}
+
+func (s *transactionService) GetStatus(transactionID uint64) (model.Status, error) {
+	transaction, err := s.transactionRepository.GetByID(transactionID)
+	if err != nil {
+		return 0, err
+	}
+	return transaction.Status, nil
 }

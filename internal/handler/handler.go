@@ -26,7 +26,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		{
 			transactions.POST("/", h.createTransaction)
 			transactions.GET("/", h.getAllUserTransactions)
-			//transactions.GET("/:id", h.checkTransactionStatus)
+			transactions.GET("/:id/status", h.getTransactionStatus)
 			//transactions.PUT("/:id", h.updateTransactionStatus)
 			//transactions.DELETE("/:id", h.cancelTransaction)
 		}

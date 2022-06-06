@@ -9,7 +9,10 @@ import (
 	"strconv"
 )
 
-var ErrIncorrectQueryParams = errors.New("incorrect query parameters data")
+var (
+	ErrInvalidQueryParams = errors.New("invalid query parameters data")
+	ErrInvalidId          = errors.New("invalid id")
+)
 
 // createTransaction создаёт платёж (транзакцию).
 func (h *Handler) createTransaction(c *gin.Context) {
@@ -61,7 +64,7 @@ func (h *Handler) getAllUserTransactions(c *gin.Context) {
 	if userIDStr != "" {
 		userID, err := strconv.ParseUint(userIDStr, 10, 64)
 		if err != nil {
-			h.newErrorResponse(c, http.StatusBadRequest, ErrIncorrectQueryParams)
+			h.newErrorResponse(c, http.StatusBadRequest, ErrInvalidQueryParams)
 			return
 		}
 
@@ -84,5 +87,24 @@ func (h *Handler) getAllUserTransactions(c *gin.Context) {
 
 	c.JSON(http.StatusOK, getAllUserTransactionsResponse{
 		Data: transactions,
+	})
+}
+
+// getTransactionStatus возвращает статус транзакции по её ID.
+func (h *Handler) getTransactionStatus(c *gin.Context) {
+	transactionId, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		h.newErrorResponse(c, http.StatusBadRequest, ErrInvalidId)
+		return
+	}
+
+	status, err := h.service.TransactionService.GetStatus(transactionId)
+	if err != nil {
+		h.newErrorResponse(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"status": status,
 	})
 }
