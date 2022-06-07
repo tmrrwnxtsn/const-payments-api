@@ -16,9 +16,12 @@ const (
 
 // Config содержит конфигурационные данные для работы сервиса.
 type Config struct {
-	BindAddr string `yaml:"bind_addr" env:"BIND_ADDR"` // адрес, на котором запущен сервер (по умолчанию ":8080")
-	DSN      string `yaml:"dsn" env:"DSN,secret"`      // строка подключения к базе данных
-	LogLevel string `yaml:"log_level" env:"LOG_LEVEL"` // уровень логгирования (по умолчанию "info")
+	// BindAddr представляет адрес, на котором запущен сервер (по умолчанию, ":8080")
+	BindAddr string `yaml:"bind_addr" env:"BIND_ADDR"`
+	// DSN является строкой подключения к базе данных (data source name).
+	DSN string `yaml:"dsn" env:"DSN,secret"`
+	// LogLevel представляет уровень логгирования (по умолчанию "info")
+	LogLevel string `yaml:"log_level" env:"LOG_LEVEL"`
 }
 
 // Validate проверяет, достаточно ли информации в конфиге для запуска сервиса.

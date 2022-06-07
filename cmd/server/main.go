@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-var flagConfig = flag.String("config", "./configs/local.yaml", "path to config file")
+var flagConfig = flag.String("config", "./configs/local.yml", "path to config file")
 
 func main() {
 	flag.Parse()
