@@ -3,7 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/tmrrwnxtsn/const-payments-api)](https://goreportcard.com/report/github.com/tmrrwnxtsn/const-payments-api)
 [![codebeat badge](https://codebeat.co/badges/71e2f5e5-9e6b-405d-baf9-7cc8b5037330)](https://codebeat.co/projects/github-com-tmrrwnxtsn-const-payments-api-master)
 
-Тестовое задание в [Константу](https://const.tech/). Необходимо разработать эмулятор платежного сервиса.
+Тестовое задание на стажировку в [Константу](https://const.tech/).
 
 ## Содержание
 
@@ -11,6 +11,7 @@
 - [Подготовка](#Подготовка)
 - [Запуск](#Запуск)
 - [Эндпойнты](#Эндпойнты)
+- [Тесты](#Тесты)
 - [Структура](#Структура)
 - [Зависимости](#Зависимости)
 
@@ -138,6 +139,43 @@ make run
 * `PATCH /api/transactions/:id/status/`: изменение статуса платежа (транзакции) системой
 * `DELETE /api/transactions/:id`: отмена платежа (транзакции) по ID
 * `GET /swagger/index.html`: Swagger-документация
+
+## Тесты
+
+Перед запуском тестов на хосте необходимо создать тестовую БД, применить к ней миграции и указать соответствующий URL
+в [internal/store/sqlstore/store_test.go](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/internal/store/sqlstore/store_test.go)
+, либо задать в переменных среды (*APP_DSN_TEST*):
+
+```go
+package sqlstore_test
+
+import (
+	"github.com/tmrrwnxtsn/const-payments-api/internal/config"
+	"os"
+	"testing"
+)
+
+var dsn string
+
+func TestMain(m *testing.M) {
+	dsn = os.Getenv(config.EnvVariablesPrefix + "DSN_TEST")
+	if dsn == "" {
+		dsn = "postgres://127.0.0.1/const_payments_db_test?sslmode=disable&user=postgres&password=qwerty"
+	}
+
+	os.Exit(m.Run())
+}
+```
+
+После этого можно переходить к запуску тестов:
+
+```shell
+# выполнение тестов сервиса (с информацией о покрытии в %)
+make test
+
+# получить детальную информацию о покрытии участков кода тестами (cover.out, cover.html)
+make test-cover
+```
 
 ## Структура
 

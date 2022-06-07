@@ -109,7 +109,7 @@ func (h *Handler) getAllUserTransactions(c *gin.Context) {
 }
 
 type getTransactionStatusResponse struct {
-	Status model.Status `json:"status,string" example:"НОВЫЙ"`
+	Status model.Status `json:"status" example:"НОВЫЙ,string"`
 }
 
 // getTransactionStatus godoc
@@ -141,7 +141,7 @@ func (h *Handler) getTransactionStatus(c *gin.Context) {
 }
 
 type changeTransactionStatusRequest struct {
-	Status model.Status `json:"status,string" example:"УСПЕХ"`
+	Status model.Status `json:"status" example:"УСПЕХ,string"`
 }
 
 // changeTransactionStatus godoc
