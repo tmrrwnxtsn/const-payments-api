@@ -69,13 +69,14 @@ git clone https://github.com/tmrrwnxtsn/const-payments-api.git
 cd const-payments-api
 ```
 
-Есть несколько вариантов запуска системы, все из которых происходят благодаря [Makefile](). Рекомендуется обратить
+Есть несколько вариантов запуска системы, все из которых происходят
+благодаря [Makefile](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/Makefile). Рекомендуется обратить
 внимание на переменные, указанные в этом файле и изменить их, если потребуется.
 
 ### 1. [Docker-compose](https://docs.docker.com/compose/gettingstarted/)
 
 Оба компонента системы разворачиваются в отдельных Docker-контейнерах. Настройки сервиса указываются в
-[docker-compose.yml]().
+[docker-compose.yml](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/docker-compose.yml).
 
 ```shell
 # запуск компонентов в отдельных Docker-контейнерах (без тестовых данных)
@@ -86,8 +87,10 @@ make compose-up
 
 Сначала в Docker-контейнере разворачивается БД, применяются миграции, загружаются тестовые данные, а потом компилируется
 и запускается бинарник с API сервером, использующим развёрнутую БД. Необходимые настройки сервиса указываются в
-файле [configs/local.yml](), либо задаются переменными среды окружения с префиксом *APP_*. SQL-запрос на добавление
-тестовых данных в БД: [testdata/testdata.sql]().
+файле [configs/local.yml](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/configs/local.yml), либо задаются
+переменными среды окружения с префиксом *APP_*. SQL-запрос на добавление тестовых данных в
+БД: [testdata/testdata.sql](https://github.com/tmrrwnxtsn/const-payments-api/blob/develop/testdata/testdata.sql)
+.
 
 ```shell
 # запуск БД в Docker-контейнере
@@ -105,10 +108,11 @@ make run
 
 ### 3. Local server + local/external DB
 
-Выполняются те же самые действия, что были описаны выше ([2. Docker]()). В данном случае отличие лишь в том, что
-используется БД хоста (предварительно необходимо создать, выполнив: `createdb -U postgres const_payments_db`), либо
-внешняя БД, развернутая в облаке (например, Heroku). Соответствующие настройки прописываются в [configs/local.yml](),
-либо задаются переменными среды окружения с префиксом *APP_*.
+Выполняются те же самые действия, что были описаны выше. В данном случае отличие лишь в том, что используется БД хоста (
+предварительно необходимо создать, выполнив: `createdb -U postgres const_payments_db`), либо внешняя БД, развернутая в
+облаке (например, Heroku). Соответствующие настройки прописываются
+в [configs/local.yml](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/configs/local.yml), либо задаются
+переменными среды окружения с префиксом *APP_*.
 
 ```shell
 # применение миграций к БД
@@ -124,8 +128,9 @@ make run
 ## Эндпойнты
 
 После успешного запуска сервиса одним из представленных способов, RESTful API сервер будет доступен по
-адресу `http://127.0.0.1:8080` (если были использованы настройки по умолчанию, указанные в [configs/local.yml]()).
-Сервер поддерживает следующие эндпойнты:
+адресу `http://127.0.0.1:8080` (если были использованы настройки по умолчанию, указанные
+в [configs/local.yml](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/configs/local.yml)). Сервер
+поддерживает следующие эндпойнты:
 
 * `POST /api/transactions/`: создание платежа (транзакции)
 * `GET /api/transactions/`: получение списка всех платежей (транзакций) пользователя по его ID или e-mail.
