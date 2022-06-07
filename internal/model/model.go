@@ -10,14 +10,14 @@ import (
 
 // Transaction представляет транзакцию.
 type Transaction struct {
-	ID           uint64    `json:"id" db:"id"`
-	UserID       uint64    `json:"user_id" db:"user_id"`
-	UserEmail    string    `json:"user_email" db:"user_email"`
-	Amount       float64   `json:"amount" db:"amount"`
-	CurrencyCode string    `json:"currency_code" db:"currency_code"`
-	CreationTime time.Time `json:"creation_time" db:"creation_time"`
-	ModifiedTime time.Time `json:"modified_time" db:"modified_time"`
-	Status       Status    `json:"status" db:"status"`
+	ID           uint64    `json:"id" db:"id" example:"1"`
+	UserID       uint64    `json:"user_id" db:"user_id" example:"1"`
+	UserEmail    string    `json:"user_email" db:"user_email" example:"tmrrwnxtsn@gmail.com"`
+	Amount       float64   `json:"amount" db:"amount" example:"123.456"`
+	CurrencyCode string    `json:"currency_code" db:"currency_code" example:"RUB"`
+	CreationTime time.Time `json:"creation_time" db:"creation_time" example:"2022-06-07T15:25:16.046823Z"`
+	ModifiedTime time.Time `json:"modified_time" db:"modified_time" example:"2022-06-07T15:25:16.046823Z"`
+	Status       Status    `json:"status,string" db:"status" example:"НОВЫЙ"`
 }
 
 // Validate проверяет информацию в транзакции на корректность.

@@ -8,19 +8,29 @@ import (
 	"strconv"
 )
 
-// createTransaction создаёт платёж (транзакцию).
-func (h *Handler) createTransaction(c *gin.Context) {
-	// принимает ID пользователя, email пользователя, сумму и валюту платежа
-	type createTransactionRequest struct {
-		UserID       uint64  `json:"user_id,string" binding:"required"`
-		UserEmail    string  `json:"user_email" binding:"required"`
-		Amount       float64 `json:"amount,string" binding:"required"`
-		CurrencyCode string  `json:"currency_code" binding:"required"`
-	}
-	type createTransactionResponse struct {
-		ID uint64 `json:"id"`
-	}
+// createTransactionRequest принимает ID пользователя, email пользователя, сумму и валюту платежа
+type createTransactionRequest struct {
+	UserID       uint64  `json:"user_id,string" binding:"required" example:"1"`
+	UserEmail    string  `json:"user_email" binding:"required" example:"tmrrwnxtsn@gmail.com"`
+	Amount       float64 `json:"amount,string" binding:"required" example:"123.456"`
+	CurrencyCode string  `json:"currency_code" binding:"required" example:"RUB"`
+}
+type createTransactionResponse struct {
+	ID uint64 `json:"id" example:"1"`
+}
 
+// createTransaction godoc
+// @Summary      Создать платёж (транзакцию)
+// @Description  Чтобы создать платёж (транзакцию), необходимо указать id пользователя, email пользователя, сумму и валюту платежа.
+// @Tags         transactions
+// @Accept       json
+// @Produce      json
+// @Param        input  body      createTransactionRequest   true  "Информация о транзакции"
+// @Success      201    {object}  createTransactionResponse  "ok"
+// @Failure      400    {object}  errorResponse              "Некорректные данные транзакции"
+// @Failure      500    {object}  errorResponse              "Ошибка на стороне сервера"
+// @Router       /transactions/ [post]
+func (h *Handler) createTransaction(c *gin.Context) {
 	var request createTransactionRequest
 	if err := c.BindJSON(&request); err != nil {
 		h.newErrorResponse(c, http.StatusBadRequest, service.ErrIncorrectTransactionData)
@@ -53,7 +63,18 @@ type getAllUserTransactionsResponse struct {
 	Data []model.Transaction `json:"data"`
 }
 
-// getAllUserTransactions возвращает список всех платежей (транзакций) пользователя по его ID или email.
+// getAllUserTransactions godoc
+// @Summary      Получить список всех платежей (транзакций) пользователя
+// @Description  Необходимо передать либо ID, либо email пользователя, чтобы получить его платежи (транзакции).
+// @Tags         transactions
+// @Accept       json
+// @Produce      json
+// @Param        user_email  query     string                          false  "Email пользователя"
+// @Param        user_id     query     number                          false  "ID пользователя"
+// @Success      200         {object}  getAllUserTransactionsResponse  "ok"
+// @Failure      400         {object}  errorResponse                   "Некорректные данные пользователя"
+// @Failure      500         {object}  errorResponse                   "Ошибка на стороне сервера"
+// @Router       /transactions/ [get]
 func (h *Handler) getAllUserTransactions(c *gin.Context) {
 	var transactions []model.Transaction
 
@@ -87,11 +108,21 @@ func (h *Handler) getAllUserTransactions(c *gin.Context) {
 	})
 }
 
-// getTransactionStatus возвращает статус транзакции по её ID.
+type getTransactionStatusResponse struct {
+	Status model.Status `json:"status,string" example:"НОВЫЙ"`
+}
+
+// getTransactionStatus godoc
+// @Summary  Возвращает статус платежа (транзакции) по его ID
+// @Tags     transactions
+// @Accept   json
+// @Produce  json
+// @Param    id   path      string                        true  "ID платежа (транзакции)"
+// @Success  200  {object}  getTransactionStatusResponse  "ok"
+// @Failure  400  {object}  errorResponse                 "Некорректный ID платежа (транзакции)"
+// @Failure  500  {object}  errorResponse                 "Ошибка на стороне сервера"
+// @Router   /transactions/{id}/status/ [get]
 func (h *Handler) getTransactionStatus(c *gin.Context) {
-	type getTransactionStatusResponse struct {
-		Status model.Status `json:"status"`
-	}
 	transactionId, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		h.newErrorResponse(c, http.StatusBadRequest, ErrInvalidTransactionID)
@@ -109,13 +140,24 @@ func (h *Handler) getTransactionStatus(c *gin.Context) {
 	})
 }
 
-// changeTransactionStatus обновляет статус транзакции по её ID.
-func (h *Handler) changeTransactionStatus(c *gin.Context) {
-	type updateTransactionStatusRequest struct {
-		Status model.Status `json:"status"`
-	}
+type changeTransactionStatusRequest struct {
+	Status model.Status `json:"status,string" example:"УСПЕХ"`
+}
 
-	var request updateTransactionStatusRequest
+// changeTransactionStatus godoc
+// @Summary      Изменяет статус платежа (транзакции) по его ID
+// @Description  Статусы "УСПЕХ" и "НЕУСПЕХ" являются терминальными - если платеж находится в них, его статус невозможно поменять.
+// @Tags         transactions
+// @Accept       json
+// @Produce      json
+// @Param        id     path      string                          true  "ID платежа (транзакции)"
+// @Param        input  body      changeTransactionStatusRequest  true  "Новый статус транзакции"
+// @Success      200    {object}  statusResponse                  "ok"
+// @Failure      400    {object}  errorResponse                   "Некорректный ID платежа (транзакции) или терминальный статус платежа (транзакции)"
+// @Failure      500    {object}  errorResponse                   "Ошибка на стороне сервера"
+// @Router       /transactions/{id}/status/ [patch]
+func (h *Handler) changeTransactionStatus(c *gin.Context) {
+	var request changeTransactionStatusRequest
 	if err := c.BindJSON(&request); err != nil {
 		h.newErrorResponse(c, http.StatusBadRequest, service.ErrIncorrectTransactionData)
 		return
@@ -141,7 +183,16 @@ func (h *Handler) changeTransactionStatus(c *gin.Context) {
 	})
 }
 
-// cancelTransaction отменяет транзакцию (платеж) по его ID.
+// cancelTransaction godoc
+// @Summary  Отменяет платёж (транзакцию) по его ID
+// @Tags     transactions
+// @Accept   json
+// @Produce  json
+// @Param    id   path      string          true  "ID платежа (транзакции)"
+// @Success  200  {object}  statusResponse  "ok"
+// @Failure  400  {object}  errorResponse   "Некорректный ID платежа (транзакции)"
+// @Failure  500  {object}  errorResponse   "Ошибка на стороне сервера"
+// @Router   /transactions/{id}/ [delete]
 func (h *Handler) cancelTransaction(c *gin.Context) {
 	transactionId, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
