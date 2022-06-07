@@ -13,6 +13,5 @@ type errorResponse struct {
 }
 
 func (h *Handler) newErrorResponse(c *gin.Context, statusCode int, err error) {
-	h.logger.Error(err.Error())
 	c.AbortWithStatusJSON(statusCode, errorResponse{Message: err.Error()})
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/model"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/store/sqlstore"
-	"github.com/tmrrwnxtsn/const-payments-api/pkg/log"
 	"testing"
 )
 
@@ -14,9 +13,7 @@ func TestTransactionRepository_Create(t *testing.T) {
 	db, teardown := sqlstore.TestDB(t, dsn)
 	defer teardown(transactionTable)
 
-	logger := log.New()
-
-	st := sqlstore.NewStore(db, logger)
+	st := sqlstore.NewStore(db)
 
 	testCases := []struct {
 		name        string
@@ -59,9 +56,7 @@ func TestTransactionRepository_Create(t *testing.T) {
 func TestTransactionRepository_GetAllByUserID(t *testing.T) {
 	db, teardown := sqlstore.TestDB(t, dsn)
 
-	logger := log.New()
-
-	st := sqlstore.NewStore(db, logger)
+	st := sqlstore.NewStore(db)
 
 	transactions, err := st.Transactions().GetAllByUserID(10)
 	assert.NoError(t, err)
@@ -83,9 +78,7 @@ func TestTransactionRepository_GetAllByUserID(t *testing.T) {
 func TestTransactionRepository_GetAllByUserEmail(t *testing.T) {
 	db, teardown := sqlstore.TestDB(t, dsn)
 
-	logger := log.New()
-
-	st := sqlstore.NewStore(db, logger)
+	st := sqlstore.NewStore(db)
 
 	transactions, err := st.Transactions().GetAllByUserEmail("tmrrwnxtsn@gmail.com")
 	assert.NoError(t, err)
@@ -107,9 +100,7 @@ func TestTransactionRepository_GetAllByUserEmail(t *testing.T) {
 func TestTransactionRepository_GetByID(t *testing.T) {
 	db, teardown := sqlstore.TestDB(t, dsn)
 
-	logger := log.New()
-
-	st := sqlstore.NewStore(db, logger)
+	st := sqlstore.NewStore(db)
 
 	transactionFound, err := st.Transactions().GetByID(12)
 	assert.Error(t, err)
@@ -131,9 +122,7 @@ func TestTransactionRepository_GetByID(t *testing.T) {
 func TestTransactionRepository_ChangeStatus(t *testing.T) {
 	db, teardown := sqlstore.TestDB(t, dsn)
 
-	logger := log.New()
-
-	st := sqlstore.NewStore(db, logger)
+	st := sqlstore.NewStore(db)
 
 	transaction := model.TestTransaction(t)
 	transactionID, _ := st.Transactions().Create(*transaction)
@@ -149,9 +138,7 @@ func TestTransactionRepository_ChangeStatus(t *testing.T) {
 func TestTransactionRepository_Delete(t *testing.T) {
 	db, teardown := sqlstore.TestDB(t, dsn)
 
-	logger := log.New()
-
-	st := sqlstore.NewStore(db, logger)
+	st := sqlstore.NewStore(db)
 	transaction := model.TestTransaction(t)
 	transactionID, _ := st.Transactions().Create(*transaction)
 

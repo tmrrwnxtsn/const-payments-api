@@ -7,10 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/assert/v2"
 	"github.com/golang/mock/gomock"
+	"github.com/sirupsen/logrus"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/model"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/service"
 	mockservice "github.com/tmrrwnxtsn/const-payments-api/internal/service/mocks"
-	"github.com/tmrrwnxtsn/const-payments-api/pkg/log"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -21,7 +21,7 @@ import (
 func TestHandler_createTransaction(t *testing.T) {
 	type mockBehavior func(s *mockservice.MockTransactionService, transaction model.Transaction)
 
-	logger := log.New()
+	logger := logrus.New()
 
 	tests := []struct {
 		name                 string
@@ -139,7 +139,7 @@ func TestHandler_getAllUserTransactions(t *testing.T) {
 		},
 	}
 
-	logger := log.New()
+	logger := logrus.New()
 
 	tests := []struct {
 		name                 string
@@ -238,7 +238,7 @@ func TestHandler_getAllUserTransactions(t *testing.T) {
 func TestHandler_getTransactionStatus(t *testing.T) {
 	type mockBehavior func(s *mockservice.MockTransactionService, transactionIDStr string)
 
-	logger := log.New()
+	logger := logrus.New()
 
 	tests := []struct {
 		name                 string
@@ -307,7 +307,7 @@ func TestHandler_getTransactionStatus(t *testing.T) {
 func TestHandler_changeTransactionStatus(t *testing.T) {
 	type mockBehavior func(s *mockservice.MockTransactionService, transactionIDStr, statusStr string)
 
-	logger := log.New()
+	logger := logrus.New()
 
 	tests := []struct {
 		name                 string
@@ -408,7 +408,7 @@ func TestHandler_changeTransactionStatus(t *testing.T) {
 func TestHandler_cancelTransaction(t *testing.T) {
 	type mockBehavior func(s *mockservice.MockTransactionService, transactionIDStr string)
 
-	logger := log.New()
+	logger := logrus.New()
 
 	tests := []struct {
 		name                 string

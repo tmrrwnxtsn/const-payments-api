@@ -6,7 +6,7 @@ tidy:
 
 .PHONY: build
 build:  ## сборка бинарника API сервера
-	go build -o server -a ./cmd/server
+	go build -o server ./cmd/server
 
 .PHONY: run
 run: build  ## запуск собранного бинарника API сервера
