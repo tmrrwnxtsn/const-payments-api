@@ -78,4 +78,12 @@ test: ## запуск юнит-тестов
 test-cover: ## отобразить информацию о покрытии кода тестами
 	go test -cover -coverprofile=cover.out ./... && go tool cover -html=cover.out -o cover.html
 
+.PHONY: swag-init
+swag-init: ## парсинг комментариев у методов и генерация Swagger-документации
+	swag init -g cmd/server/main.go
+
+.PHONY: swag-fmt
+swag-fmt: ## форматирование комментариев swag
+	swag fmt -g cmd/server/main.go
+
 .DEFAULT_GOAL := run

@@ -20,6 +20,17 @@ import (
 
 var flagConfig = flag.String("config", "./configs/local.yml", "path to config file")
 
+// @title           Constanta Payments API
+// @version         1.0
+// @description     Эмулятор платёжного сервиса, позволяющего работать с платежами (транзакциями).
+// @termsOfService  http://swagger.io/terms/
+
+// @license.name  The MIT License (MIT)
+// @license.url   https://mit-license.org/
+
+// @host      localhost:8080
+// @BasePath  /api
+
 func main() {
 	flag.Parse()
 

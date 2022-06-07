@@ -1,0 +1,253 @@
+basePath: /api
+definitions:
+  handler.changeTransactionStatusRequest:
+    properties:
+      status:
+        example: УСПЕХ
+        type: string
+    type: object
+  handler.createTransactionRequest:
+    properties:
+      amount:
+        example: "123.456"
+        type: string
+      currency_code:
+        example: RUB
+        type: string
+      user_email:
+        example: tmrrwnxtsn@gmail.com
+        type: string
+      user_id:
+        example: "1"
+        type: string
+    required:
+    - amount
+    - currency_code
+    - user_email
+    - user_id
+    type: object
+  handler.createTransactionResponse:
+    properties:
+      id:
+        example: 1
+        type: integer
+    type: object
+  handler.errorResponse:
+    properties:
+      message:
+        example: invalid transaction id
+        type: string
+    type: object
+  handler.getAllUserTransactionsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/model.Transaction'
+        type: array
+    type: object
+  handler.getTransactionStatusResponse:
+    properties:
+      status:
+        example: НОВЫЙ
+        type: string
+    type: object
+  handler.statusResponse:
+    properties:
+      status:
+        example: ok
+        type: string
+    type: object
+  model.Transaction:
+    properties:
+      amount:
+        example: 123.456
+        type: number
+      creation_time:
+        example: "2022-06-07T15:25:16.046823Z"
+        type: string
+      currency_code:
+        example: RUB
+        type: string
+      id:
+        example: 1
+        type: integer
+      modified_time:
+        example: "2022-06-07T15:25:16.046823Z"
+        type: string
+      status:
+        example: НОВЫЙ
+        type: string
+      user_email:
+        example: tmrrwnxtsn@gmail.com
+        type: string
+      user_id:
+        example: 1
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Эмулятор платёжного сервиса, позволяющего работать с платежами (транзакциями).
+  license:
+    name: The MIT License (MIT)
+    url: https://mit-license.org/
+  termsOfService: http://swagger.io/terms/
+  title: Constanta Payments API
+  version: "1.0"
+paths:
+  /transactions/:
+    get:
+      consumes:
+      - application/json
+      description: Необходимо передать либо ID, либо email пользователя, чтобы получить
+        его платежи (транзакции).
+      parameters:
+      - description: Email пользователя
+        in: query
+        name: user_email
+        type: string
+      - description: ID пользователя
+        in: query
+        name: user_id
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/handler.getAllUserTransactionsResponse'
+        "400":
+          description: Некорректные данные пользователя
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+        "500":
+          description: Ошибка на стороне сервера
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Получить список всех платежей (транзакций) пользователя
+      tags:
+      - transactions
+    post:
+      consumes:
+      - application/json
+      description: Чтобы создать платёж (транзакцию), необходимо указать id пользователя,
+        email пользователя, сумму и валюту платежа.
+      parameters:
+      - description: Информация о транзакции
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handler.createTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ok
+          schema:
+            $ref: '#/definitions/handler.createTransactionResponse'
+        "400":
+          description: Некорректные данные транзакции
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+        "500":
+          description: Ошибка на стороне сервера
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Создать платёж (транзакцию)
+      tags:
+      - transactions
+  /transactions/{id}/:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID платежа (транзакции)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/handler.statusResponse'
+        "400":
+          description: Некорректный ID платежа (транзакции)
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+        "500":
+          description: Ошибка на стороне сервера
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Отменяет платёж (транзакцию) по его ID.
+      tags:
+      - transactions
+  /transactions/{id}/status/:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID платежа (транзакции)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/handler.getTransactionStatusResponse'
+        "400":
+          description: Некорректный ID платежа (транзакции)
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+        "500":
+          description: Ошибка на стороне сервера
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Возвращает статус платежа (транзакции) по его ID
+      tags:
+      - transactions
+    patch:
+      consumes:
+      - application/json
+      description: Статусы "УСПЕХ" и "НЕУСПЕХ" являются терминальными - если платеж
+        находится в них, его статус невозможно поменять.
+      parameters:
+      - description: ID платежа (транзакции)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Новый статус транзакции
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handler.changeTransactionStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            $ref: '#/definitions/handler.statusResponse'
+        "400":
+          description: Некорректный ID платежа (транзакции) или терминальный статус
+            платежа (транзакции)
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+        "500":
+          description: Ошибка на стороне сервера
+          schema:
+            $ref: '#/definitions/handler.errorResponse'
+      summary: Изменяет статус платежа (транзакции) по его ID
+      tags:
+      - transactions
+swagger: "2.0"

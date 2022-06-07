@@ -1,5 +1,8 @@
 # Эмулятор платёжного сервиса
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/tmrrwnxtsn/const-payments-api)](https://goreportcard.com/report/github.com/tmrrwnxtsn/const-payments-api)
+[![codebeat badge](https://codebeat.co/badges/71e2f5e5-9e6b-405d-baf9-7cc8b5037330)](https://codebeat.co/projects/github-com-tmrrwnxtsn-const-payments-api-master)
+
 Тестовое задание в [Константу](https://const.tech/). Необходимо разработать эмулятор платежного сервиса.
 
 ## Содержание
@@ -9,6 +12,7 @@
 - [Запуск](#Запуск)
 - [Эндпойнты](#Эндпойнты)
 - [Структура](#Структура)
+- [Зависимости](#Зависимости)
 
 ## Задание
 
@@ -45,10 +49,6 @@ API должно поддерживать следующие действия:
 - Получение списка всех платежей пользователя по его e-mail;
 - Отмена платежа по его ID. API должно вернуть ошибку, если отмена невозможна (например потому что платеж в том статусе,
   в котором отменить нельзя).
-
-Кроме того, пожалуйста, подготовь Dockerfile для того, чтобы сервис можно было проще развернуть, и напиши короткое
-описание API в README. Будет совсем хорошо, если напишешь тесты для API. В качестве результата мы ожидаем репозиторий в
-любом публичном хранилище кода (github\gitlab\etc.). Мы обязательно дадим обратную связь по твоему тестовому заданию.
 
 ## Подготовка
 
@@ -134,9 +134,10 @@ make run
 
 * `POST /api/transactions/`: создание платежа (транзакции)
 * `GET /api/transactions/`: получение списка всех платежей (транзакций) пользователя по его ID или e-mail.
-* `GET /api/transactions/:id/status`: проверка статуса платежа (транзакции) по ID
-* `PATCH /api/transactions/:id/status`: изменение статуса платежа (транзакции) системой
+* `GET /api/transactions/:id/status/`: проверка статуса платежа (транзакции) по ID
+* `PATCH /api/transactions/:id/status/`: изменение статуса платежа (транзакции) системой
 * `DELETE /api/transactions/:id`: отмена платежа (транзакции) по ID
+* `GET /swagger/index.html`: Swagger-документация
 
 ## Структура
 
@@ -146,9 +147,10 @@ make run
 ├── cmd                 основные приложения проекта
 │   └── server          приложение API сервера (включает в себя Dockerfile, скрипт для запуска entrypoint.sh)
 ├── configs             конфигурационные файлы для различных сред развёртывания
+├── docs                сгенерированная Swagger-документация 
 ├── internal            внутренний код приложения
 │   ├── config          работа с конфигурационными данными
-│   ├── handler         роутер HTTP-запросов
+│   ├── handler         маршрутизация HTTP-запросов
 │   ├── model           модели/сущности приложения
 │   ├── server          HTTP-сервер, используемый для обработки запросов
 │   ├── service         слой бизнес-логики для работы с платежами (транзакциями)
@@ -159,3 +161,14 @@ make run
 ├── migrations          миграции базы данных
 └── testdata            тестовые данные для БД
 ```
+
+## Зависимости
+
+* Маршрутизация: [gin](https://github.com/gin-gonic/gin)
+* Доступ к базе данных: [sqlx](https://github.com/jmoiron/sqlx)
+* Драйвер PostgreSQL: [pgx](https://github.com/jackc/pgx)
+* Миграции базы данных: [golang-migrate](https://github.com/golang-migrate/migrate)
+* Валидация данных: [ozzo-validation](https://github.com/go-ozzo/ozzo-validation)
+* Логгирование: [logrus](https://github.com/sirupsen/logrus)
+* Генерация Swagger-документации: [swag](https://github.com/swaggo/swag)
+* Генерация моков: [golang/mock](https://github.com/golang/mock)
