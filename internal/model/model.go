@@ -17,7 +17,7 @@ type Transaction struct {
 	CurrencyCode string    `json:"currency_code" db:"currency_code" example:"RUB"`
 	CreationTime time.Time `json:"creation_time" db:"creation_time" example:"2022-06-07T15:25:16.046823Z"`
 	ModifiedTime time.Time `json:"modified_time" db:"modified_time" example:"2022-06-07T15:25:16.046823Z"`
-	Status       Status    `json:"status,string" db:"status" example:"НОВЫЙ"`
+	Status       Status    `json:"status" db:"status" example:"НОВЫЙ,string"`
 }
 
 // Validate проверяет информацию в транзакции на корректность.

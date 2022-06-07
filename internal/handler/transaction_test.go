@@ -287,7 +287,7 @@ func TestHandler_getTransactionStatus(t *testing.T) {
 			handler := NewHandler(services, logger)
 
 			router := gin.New()
-			router.GET("api/transactions/:id/status", handler.getTransactionStatus)
+			router.GET("/api/transactions/:id/status", handler.getTransactionStatus)
 
 			responseRecorder := httptest.NewRecorder()
 			request := httptest.NewRequest(
@@ -388,7 +388,7 @@ func TestHandler_changeTransactionStatus(t *testing.T) {
 			handler := NewHandler(services, logger)
 
 			router := gin.New()
-			router.PATCH("api/transactions/:id/status", handler.changeTransactionStatus)
+			router.PATCH("/api/transactions/:id/status", handler.changeTransactionStatus)
 
 			responseRecorder := httptest.NewRecorder()
 			request := httptest.NewRequest(
@@ -467,7 +467,7 @@ func TestHandler_cancelTransaction(t *testing.T) {
 			handler := NewHandler(services, logger)
 
 			router := gin.New()
-			router.DELETE("api/transactions/:id", handler.cancelTransaction)
+			router.DELETE("/api/transactions/:id", handler.cancelTransaction)
 
 			responseRecorder := httptest.NewRecorder()
 			request := httptest.NewRequest(
