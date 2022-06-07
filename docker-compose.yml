@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: cmd/server/Dockerfile
+    ports:
+      - 8080:8080
+    environment:
+      - APP_BIND_ADDR=:8080
+      - APP_DSN=postgres://db/const_payments_db?sslmode=disable&user=user&password=qwerty
+      - APP_LOG_LEVEL=info
+    depends_on:
+      - db
+  db:
+    image: postgres:latest
+    restart: always
+    ports:
+      - 5433:5432
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=qwerty
+      - POSTGRES_DB=const_payments_db
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+    healthcheck:
+      test: PGPASSWORD='qwerty' psql -U user const_payments_db --command='SELECT 1'
+      interval: 1s
+      timeout: 2s
+      retries: 5
+
+volumes:
+  postgres_volume:
