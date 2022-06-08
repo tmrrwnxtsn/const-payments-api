@@ -40,7 +40,4 @@ COPY --from=builder /app/configs/*.yml ./configs/
 
 RUN ls -la
 
-# (c) https://stackoverflow.com/questions/64941396/bin-bash-invalid-optionash
-RUN cat entrypoint.sh | sed '1 s/\r$//' > entrypoint.sh
-
 ENTRYPOINT ["./entrypoint.sh"]
