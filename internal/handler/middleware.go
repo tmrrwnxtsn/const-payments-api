@@ -10,9 +10,12 @@ import (
 
 const requestIDKey = "X-Request-ID"
 
-// setRequestID присваивает входящему HTTP-запросу ID (requestIDKey).
+// setRequestID присваивает ID (заголовок requestIDKey) входящему запросу.
 func setRequestID(c *gin.Context) {
-	requestID := uuid.New().String()
+	requestID := c.GetHeader(requestIDKey)
+	if requestID == "" {
+		requestID = uuid.New().String()
+	}
 	c.Header(requestIDKey, requestID)
 	c.Next()
 }

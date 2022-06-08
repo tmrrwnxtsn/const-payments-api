@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/model"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/service"
+	"io"
 	"net/http"
 	"strconv"
 )
@@ -16,12 +19,13 @@ type createTransactionRequest struct {
 	CurrencyCode string  `json:"currency_code" binding:"required" example:"RUB"`
 }
 type createTransactionResponse struct {
-	ID uint64 `json:"id" example:"1"`
+	ID     uint64       `json:"id" example:"1"`
+	Status model.Status `json:"status" example:"УСПЕХ,string"`
 }
 
 // createTransaction godoc
 // @Summary      Создать платёж (транзакцию)
-// @Description  Чтобы создать платёж (транзакцию), необходимо указать id пользователя, email пользователя, сумму и валюту платежа.
+// @Description  Платёжная система создаёт платёж (транзакцию) и уведомляет, прошёл ли он в системе.
 // @Tags         transactions
 // @Accept       json
 // @Produce      json
@@ -37,7 +41,9 @@ func (h *Handler) createTransaction(c *gin.Context) {
 		return
 	}
 
-	transactionID, err := h.service.TransactionService.Create(model.Transaction{
+	// пользователь создаёт платёж (транзакцию) в статусе "НОВЫЙ"
+	// при создании случайным образом этот статус может поменяться на "ОШИБКА"
+	transactionID, createdStatus, err := h.service.TransactionService.Create(model.Transaction{
 		UserID:       request.UserID,
 		UserEmail:    request.UserEmail,
 		Amount:       request.Amount,
@@ -54,9 +60,64 @@ func (h *Handler) createTransaction(c *gin.Context) {
 		return
 	}
 
+	redirectURL := fmt.Sprintf("http://%s/api/transactions/%d/status", c.Request.Host, transactionID)
+
+	// платёжная система делает запрос на наш эндпоинт на изменение статуса платежа (транзакции)
+	appliedStatus, err := callbackChangeTransactionStatus(redirectURL, createdStatus, c)
+	if err != nil {
+		h.newErrorResponse(c, http.StatusInternalServerError, err)
+		return
+	}
+
 	c.JSON(http.StatusCreated, createTransactionResponse{
-		ID: transactionID,
+		ID:     transactionID,
+		Status: appliedStatus,
 	})
+}
+
+// callbackChangeTransactionStatus уведомляет о том, прошёл платёж или нет,
+// отправляя запрос на наш эндпоинт на изменение статуса (PATCH /api/transactions/:id/status).
+func callbackChangeTransactionStatus(redirectURL string, createdStatus model.Status, c *gin.Context) (model.Status, error) {
+	var (
+		changeStatusRequestBody []byte
+		appliedStatus           model.Status
+	)
+	if createdStatus == model.StatusNew {
+		// если платёж (транзакция) создался со статусом "НОВЫЙ", то подтверждаем создание платежа статусом "УСПЕХ"
+		changeStatusRequestBody = []byte(`{"status":"УСПЕХ"}`)
+		appliedStatus = model.StatusSuccess
+	} else {
+		// если платёж (транзакция) создался со статусом "ОШИБКА", то отрицаем создание платежа статусом "НЕУСПЕХ"
+		changeStatusRequestBody = []byte(`{"status":"НЕУСПЕХ"}`)
+		appliedStatus = model.StatusFailure
+	}
+
+	changeStatusRequest, err := http.NewRequestWithContext(
+		c,
+		"PATCH",
+		redirectURL,
+		bytes.NewBuffer(changeStatusRequestBody),
+	)
+	if err != nil {
+		return createdStatus, err
+	}
+	// устанавливаем ID запроса такой же, чтобы можно было отследить, каким образом выполнялось создание и уведломление
+	changeStatusRequest.Header.Set(requestIDKey, c.Writer.Header().Get(requestIDKey))
+
+	changeStatusResponse, err := http.DefaultClient.Do(changeStatusRequest)
+	if err != nil {
+		return createdStatus, err
+	}
+	defer changeStatusResponse.Body.Close()
+
+	if changeStatusResponse.Status != "200 OK" {
+		bodyBytes, err := io.ReadAll(changeStatusResponse.Body)
+		if err != nil {
+			return createdStatus, err
+		}
+		return createdStatus, fmt.Errorf("failed to verify payment creation: %s", string(bodyBytes))
+	}
+	return appliedStatus, nil
 }
 
 type getAllUserTransactionsResponse struct {

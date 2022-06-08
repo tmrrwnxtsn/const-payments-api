@@ -58,12 +58,12 @@ API должно поддерживать следующие действия:
 
 - [Go](https://golang.org/doc/install) >=1.17;
 - [PostgreSQL](https://www.postgresql.org/docs/current/tutorial-start.html) >=13 при запуске API сервера с
-  использованием собственного сервера БД или [Docker](https://www.docker.com/get-started) >= 20.10.14, если собственный
+  использованием собственного сервера БД или [Docker](https://www.docker.com/get-started) >=20.10.14, если собственный
   сервер БД отсутствует.
 
 ## Запуск
 
-После установки необходимого ПО, необходимо скачать исходный код сервиса и перейти в директорию с исходным кодом:
+После установки необходимого ПО необходимо скачать исходный код сервиса и перейти в директорию с исходным кодом:
 
 ```shell
 git clone https://github.com/tmrrwnxtsn/const-payments-api.git
@@ -71,12 +71,18 @@ cd const-payments-api
 ```
 
 Есть несколько вариантов запуска системы, все из которых происходят
-благодаря [Makefile](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/Makefile). Рекомендуется обратить
-внимание на переменные, указанные в этом файле и изменить их, если потребуется.
+благодаря [Makefile](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/Makefile). Перед запуском
+рекомендуется обратить внимание на переменные, указанные в этом файле, и изменить их, если потребуется. Также следует
+обратить внимание на конфигурационный
+файл [configs/local.yml](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/configs/local.yml) и внести
+необходимые правки. Если возникнет необходимость задать соответствующие переменные среды окружения, то они должны
+добавляться с префиксом *APP_*, например, *APP_BIND_ADDR* (
+см. [docker-compose.yml](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/docker-compose.yml)).
 
-### 1. [Docker-compose](https://docs.docker.com/compose/gettingstarted/)
+### 1. [Docker Compose](https://docs.docker.com/compose/gettingstarted/)
 
-Оба компонента системы разворачиваются в отдельных Docker-контейнерах. Настройки сервиса указываются в
+Оба компонента системы (API сервер и БД) разворачиваются в отдельных Docker-контейнерах. Настройки компонентов
+указываются в
 [docker-compose.yml](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/docker-compose.yml).
 
 ```shell
@@ -84,14 +90,9 @@ cd const-payments-api
 make compose-up
 ```
 
-### 2. Local server + Docker DB
+### 2. Docker
 
-Сначала в Docker-контейнере разворачивается БД, применяются миграции, загружаются тестовые данные, а потом компилируется
-и запускается бинарник с API сервером, использующим развёрнутую БД. Необходимые настройки сервиса указываются в
-файле [configs/local.yml](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/configs/local.yml), либо задаются
-переменными среды окружения с префиксом *APP_*. SQL-запрос на добавление тестовых данных в
-БД: [testdata/testdata.sql](https://github.com/tmrrwnxtsn/const-payments-api/blob/develop/testdata/testdata.sql)
-.
+Имеется возможность разворачивать в Docker-контейнерах как API сервер, так и БД.
 
 ```shell
 # запуск БД в Docker-контейнере
@@ -103,17 +104,17 @@ make migrate-up-docker
 # загрузка тестовых данных в БД 
 make testdata-docker
 
-# компиляция и запуск бинарника с API сервером на хосте 
-make run
+# сборка образа API сервера
+make build-docker
+
+# запуск API сервера в Docker-контейнере на основе собранного образа
+make run-docker
 ```
 
-### 3. Local server + local/external DB
+### 3. Local
 
-Выполняются те же самые действия, что были описаны выше. В данном случае отличие лишь в том, что используется БД хоста (
-предварительно необходимо создать, выполнив: `createdb -U postgres const_payments_db`), либо внешняя БД, развернутая в
-облаке (например, Heroku). Соответствующие настройки прописываются
-в [configs/local.yml](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/configs/local.yml), либо задаются
-переменными среды окружения с префиксом *APP_*.
+Также есть возможность запустить API сервер локально (у себя на хосте), используя различные подключения к БД (
+локальная/внешняя/Docker).
 
 ```shell
 # применение миграций к БД
@@ -124,7 +125,16 @@ make testdata
 
 # компиляция и запуск бинарника с API сервером на хосте 
 make run
+
+# компиляция
+make build
+
+# запуск бинарника API сервера
+make run
 ```
+
+*Рекомендуется проверить настройки сервиса в соответствующих конфигурационных файлах перед запуском любым из
+вышеописанных способов.*
 
 ## Эндпойнты
 
@@ -147,6 +157,8 @@ make run
 , либо задать в переменных среды (*APP_DSN_TEST*):
 
 ```go
+// internal/store/sqlstore/store_test.go
+
 package sqlstore_test
 
 import (

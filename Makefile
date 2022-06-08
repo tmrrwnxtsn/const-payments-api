@@ -1,7 +1,9 @@
+# адрес, на котором будет запущен API сервер
+APP_BIND_ADDR ?= :8080
 # строка подключения к БД
 APP_DSN ?= postgres://127.0.0.1/const_payments_db?sslmode=disable&user=postgres&password=qwerty
 # корневая папка сервиса (та, в которой лежат все исходники после загрузки)
-WORKING_DIRECTORY := C:/Users/f0rge/Go/src/github.com/tmrrwnxtsn/const-payments-api
+WORKING_DIRECTORY := $(shell pwd)
 
 .PHONY: tidy
 tidy:
@@ -14,6 +16,14 @@ build:  ## сборка бинарника API сервера
 .PHONY: run
 run: build  ## запуск собранного бинарника API сервера
 	./server
+
+.PHONY: build-docker
+build-docker: ## сборка образа API сервера
+	docker build -f cmd/server/Dockerfile -t server .
+
+.PHONY: run-docker
+run-docker: ## запуск API-сервера в Docker-контейнере на основе собранного образа
+	docker run -p 8080:8080 --name server -e APP_DSN="$(APP_DSN)" -e APP_BIND_ADDR="$(APP_BIND_ADDR)" server
 
 .PHONY: migrate-up
 migrate-up: ## применение миграций к БД

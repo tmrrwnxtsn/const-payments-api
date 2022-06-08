@@ -28,4 +28,16 @@ func Test_setRequestID(t *testing.T) {
 
 	requestID := responseRecorder.Header().Get(requestIDKey)
 	assert.NotEqual(t, "", requestID)
+
+	request = httptest.NewRequest(
+		"GET",
+		"/id",
+		nil,
+	)
+	request.Header.Set(requestIDKey, "test request ID")
+
+	router.ServeHTTP(responseRecorder, request)
+
+	requestID = responseRecorder.Header().Get(requestIDKey)
+	assert.Equal(t, "test request ID", requestID)
 }
