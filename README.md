@@ -71,8 +71,8 @@ cd const-payments-api
 ```
 
 Есть несколько вариантов запуска системы, все из которых происходят
-благодаря [Makefile](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/Makefile). Перед запуском
-рекомендуется обратить внимание на переменные, указанные в этом файле, и изменить их, если потребуется. Также следует
+благодаря [Makefile](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/Makefile). **Перед запуском
+рекомендуется обратить внимание на переменные, указанные в этом файле, и изменить их, если потребуется**. Также следует
 обратить внимание на конфигурационный
 файл [configs/local.yml](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/configs/local.yml) и внести
 необходимые правки. Если возникнет необходимость задать соответствующие переменные среды окружения, то они должны
