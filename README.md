@@ -81,7 +81,7 @@ cd const-payments-api
 
 ### 1. [Docker Compose](https://docs.docker.com/compose/gettingstarted/)
 
-Оба компонента системы (API сервер и БД) разворачиваются в отдельных Docker-контейнерах. Настройки компонентов
+Пожалуй, самый "безболезненный" и простой способ. Оба компонента системы (API сервер и БД) разворачиваются в отдельных Docker-контейнерах. Настройки компонентов
 указываются в
 [docker-compose.yml](https://github.com/tmrrwnxtsn/const-payments-api/blob/master/docker-compose.yml).
 
