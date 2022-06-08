@@ -70,7 +70,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Чтобы создать платёж (транзакцию), необходимо указать id пользователя, email пользователя, сумму и валюту платежа.",
+                "description": "Платёжная система создаёт платёж (транзакцию) и уведомляет, прошёл ли он в системе.",
                 "consumes": [
                     "application/json"
                 ],
@@ -125,7 +125,7 @@ const docTemplate = `{
                 "tags": [
                     "transactions"
                 ],
-                "summary": "Отменяет платёж (транзакцию) по его ID.",
+                "summary": "Отменяет платёж (транзакцию) по его ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -295,6 +295,10 @@ const docTemplate = `{
                 "id": {
                     "type": "integer",
                     "example": 1
+                },
+                "status": {
+                    "type": "string",
+                    "example": "УСПЕХ"
                 }
             }
         },
