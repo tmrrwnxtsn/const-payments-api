@@ -63,12 +63,13 @@ func (mr *MockTransactionServiceMockRecorder) ChangeStatus(transactionID, status
 }
 
 // Create mocks base method.
-func (m *MockTransactionService) Create(transaction model.Transaction) (uint64, error) {
+func (m *MockTransactionService) Create(transaction model.Transaction) (uint64, model.Status, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", transaction)
 	ret0, _ := ret[0].(uint64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(model.Status)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // Create indicates an expected call of Create.

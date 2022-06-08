@@ -2,17 +2,21 @@ package handler
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/assert/v2"
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/model"
 	"github.com/tmrrwnxtsn/const-payments-api/internal/service"
 	mockservice "github.com/tmrrwnxtsn/const-payments-api/internal/service/mocks"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strconv"
 	"testing"
 	"time"
@@ -32,7 +36,7 @@ func TestHandler_createTransaction(t *testing.T) {
 		expectedResponseBody string
 	}{
 		{
-			name:      "ok",
+			name:      "ok (created with StatusNew)",
 			inputBody: `{"user_id":"11","user_email":"tmrrwnxtsn@gmail.com","amount":"123.456","currency_code":"RUB"}`,
 			inputTransaction: model.Transaction{
 				UserID:       11,
@@ -41,10 +45,27 @@ func TestHandler_createTransaction(t *testing.T) {
 				CurrencyCode: "RUB",
 			},
 			mockBehavior: func(s *mockservice.MockTransactionService, transaction model.Transaction) {
-				s.EXPECT().Create(transaction).Return(uint64(1), nil)
+				s.EXPECT().Create(transaction).Return(uint64(1), model.StatusNew, nil)
+				s.EXPECT().ChangeStatus(uint64(1), model.StatusSuccess).Return(nil)
 			},
 			expectedStatusCode:   http.StatusCreated,
-			expectedResponseBody: `{"id":1}`,
+			expectedResponseBody: `{"id":1,"status":"УСПЕХ"}`,
+		},
+		{
+			name:      "ok (created with StatusError)",
+			inputBody: `{"user_id":"11","user_email":"tmrrwnxtsn@gmail.com","amount":"123.456","currency_code":"RUB"}`,
+			inputTransaction: model.Transaction{
+				UserID:       11,
+				UserEmail:    "tmrrwnxtsn@gmail.com",
+				Amount:       123.456,
+				CurrencyCode: "RUB",
+			},
+			mockBehavior: func(s *mockservice.MockTransactionService, transaction model.Transaction) {
+				s.EXPECT().Create(transaction).Return(uint64(1), model.StatusError, nil)
+				s.EXPECT().ChangeStatus(uint64(1), model.StatusFailure).Return(nil)
+			},
+			expectedStatusCode:   http.StatusCreated,
+			expectedResponseBody: `{"id":1,"status":"НЕУСПЕХ"}`,
 		},
 		{
 			name:                 "empty fields",
@@ -63,7 +84,7 @@ func TestHandler_createTransaction(t *testing.T) {
 				CurrencyCode: "ruble",
 			},
 			mockBehavior: func(s *mockservice.MockTransactionService, transaction model.Transaction) {
-				s.EXPECT().Create(transaction).Return(uint64(0), service.ErrIncorrectTransactionData)
+				s.EXPECT().Create(transaction).Return(uint64(0), model.Status(0), service.ErrIncorrectTransactionData)
 			},
 			expectedStatusCode:   http.StatusBadRequest,
 			expectedResponseBody: `{"message":"transaction data is incorrect"}`,
@@ -78,10 +99,26 @@ func TestHandler_createTransaction(t *testing.T) {
 				CurrencyCode: "RUB",
 			},
 			mockBehavior: func(s *mockservice.MockTransactionService, transaction model.Transaction) {
-				s.EXPECT().Create(transaction).Return(uint64(0), errors.New("service failure"))
+				s.EXPECT().Create(transaction).Return(uint64(0), model.Status(0), errors.New("service failure"))
 			},
 			expectedStatusCode:   http.StatusInternalServerError,
 			expectedResponseBody: `{"message":"service failure"}`,
+		},
+		{
+			name:      "callback failure",
+			inputBody: `{"user_id":"11","user_email":"tmrrwnxtsn@gmail.com","amount":"123.456","currency_code":"RUB"}`,
+			inputTransaction: model.Transaction{
+				UserID:       11,
+				UserEmail:    "tmrrwnxtsn@gmail.com",
+				Amount:       123.456,
+				CurrencyCode: "RUB",
+			},
+			mockBehavior: func(s *mockservice.MockTransactionService, transaction model.Transaction) {
+				s.EXPECT().Create(transaction).Return(uint64(1), model.StatusNew, nil)
+				s.EXPECT().ChangeStatus(uint64(1), model.StatusSuccess).Return(errors.New("service failure"))
+			},
+			expectedStatusCode:   http.StatusInternalServerError,
+			expectedResponseBody: `{"message":"failed to verify payment creation: {\"message\":\"service failure\"}"}`,
 		},
 	}
 	for _, tt := range tests {
@@ -97,18 +134,39 @@ func TestHandler_createTransaction(t *testing.T) {
 
 			router := gin.New()
 			router.POST("/api/transactions/", handler.createTransaction)
+			router.PATCH("/api/transactions/:id/status/", handler.changeTransactionStatus)
 
-			responseRecorder := httptest.NewRecorder()
+			srv := httptest.NewServer(router)
+			defer srv.Close()
+
+			requestTarget := fmt.Sprintf("%s/api/transactions/", srv.URL)
 			request := httptest.NewRequest(
 				"POST",
-				"/api/transactions/",
+				requestTarget,
 				bytes.NewBufferString(tt.inputBody),
 			)
+			request.RequestURI = ""
 
-			router.ServeHTTP(responseRecorder, request)
+			requestURL, err := url.Parse(requestTarget)
+			assert.NoError(t, err)
+			request.URL = requestURL
 
-			assert.Equal(t, tt.expectedStatusCode, responseRecorder.Code)
-			assert.Equal(t, tt.expectedResponseBody, responseRecorder.Body.String())
+			res, err := http.DefaultClient.Do(request)
+			assert.NoError(t, err)
+			defer func(Body io.ReadCloser) {
+				err = Body.Close()
+				assert.NoError(t, err)
+			}(res.Body)
+
+			body, err := ioutil.ReadAll(res.Body)
+			assert.NoError(t, err)
+
+			buffer := new(bytes.Buffer)
+			err = json.Compact(buffer, []byte(tt.expectedResponseBody))
+			assert.NoError(t, err)
+
+			assert.Equal(t, tt.expectedStatusCode, res.StatusCode)
+			assert.Equal(t, tt.expectedResponseBody, string(body))
 		})
 	}
 }

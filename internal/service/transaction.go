@@ -11,7 +11,7 @@ import (
 // TransactionService представляет бизнес-логику работы с транзакциями.
 type TransactionService interface {
 	// Create создаёт транзакцию.
-	Create(transaction model.Transaction) (uint64, error)
+	Create(transaction model.Transaction) (uint64, model.Status, error)
 	// GetAllByUserID возвращает информацию о транзакциях пользователя по его ID.
 	GetAllByUserID(userID uint64) ([]model.Transaction, error)
 	// GetAllByUserEmail возвращает информацию о транзакциях пользователя по его email.
@@ -32,18 +32,22 @@ func NewTransactionService(transactionRepository store.TransactionRepository) Tr
 	return &transactionService{transactionRepository: transactionRepository}
 }
 
-func (s *transactionService) Create(transaction model.Transaction) (uint64, error) {
+func (s *transactionService) Create(transaction model.Transaction) (uint64, model.Status, error) {
 	if err := transaction.Validate(); err != nil {
-		return 0, ErrIncorrectTransactionData
+		return 0, 0, ErrIncorrectTransactionData
 	}
 
 	// случайное количество платежей при создании переходит в статус "ОШИБКА"
 	rand.Seed(time.Now().UnixNano())
-	if n := rand.Int(); n%8 == 0 {
+	if n := rand.Int(); n%6 == 0 {
 		transaction.Status = model.StatusError
 	}
 
-	return s.transactionRepository.Create(transaction)
+	transactionID, err := s.transactionRepository.Create(transaction)
+	if err != nil {
+		return 0, 0, err
+	}
+	return transactionID, transaction.Status, nil
 }
 
 func (s *transactionService) GetAllByUserID(userID uint64) ([]model.Transaction, error) {
