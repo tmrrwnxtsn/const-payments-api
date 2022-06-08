@@ -21,10 +21,10 @@ definitions:
         example: "1"
         type: string
     required:
-    - amount
-    - currency_code
-    - user_email
-    - user_id
+      - amount
+      - currency_code
+      - user_email
+      - user_id
     type: object
   handler.createTransactionResponse:
     properties:
@@ -86,7 +86,7 @@ definitions:
     type: object
 host: localhost:8080
 info:
-  contact: {}
+  contact: { }
   description: Эмулятор платёжного сервиса, позволяющего работать с платежами (транзакциями).
   license:
     name: The MIT License (MIT)
@@ -98,20 +98,20 @@ paths:
   /transactions/:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Необходимо передать либо ID, либо email пользователя, чтобы получить
         его платежи (транзакции).
       parameters:
-      - description: Email пользователя
-        in: query
-        name: user_email
-        type: string
-      - description: ID пользователя
-        in: query
-        name: user_id
-        type: number
+        - description: Email пользователя
+          in: query
+          name: user_email
+          type: string
+        - description: ID пользователя
+          in: query
+          name: user_id
+          type: number
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: ok
@@ -127,21 +127,21 @@ paths:
             $ref: '#/definitions/handler.errorResponse'
       summary: Получить список всех платежей (транзакций) пользователя
       tags:
-      - transactions
+        - transactions
     post:
       consumes:
-      - application/json
+        - application/json
       description: Чтобы создать платёж (транзакцию), необходимо указать id пользователя,
         email пользователя, сумму и валюту платежа.
       parameters:
-      - description: Информация о транзакции
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/handler.createTransactionRequest'
+        - description: Информация о транзакции
+          in: body
+          name: input
+          required: true
+          schema:
+            $ref: '#/definitions/handler.createTransactionRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: ok
@@ -157,19 +157,19 @@ paths:
             $ref: '#/definitions/handler.errorResponse'
       summary: Создать платёж (транзакцию)
       tags:
-      - transactions
+        - transactions
   /transactions/{id}/:
     delete:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: ID платежа (транзакции)
-        in: path
-        name: id
-        required: true
-        type: string
+        - description: ID платежа (транзакции)
+          in: path
+          name: id
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: ok
@@ -185,19 +185,19 @@ paths:
             $ref: '#/definitions/handler.errorResponse'
       summary: Отменяет платёж (транзакцию) по его ID.
       tags:
-      - transactions
+        - transactions
   /transactions/{id}/status/:
     get:
       consumes:
-      - application/json
+        - application/json
       parameters:
-      - description: ID платежа (транзакции)
-        in: path
-        name: id
-        required: true
-        type: string
+        - description: ID платежа (транзакции)
+          in: path
+          name: id
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: ok
@@ -213,26 +213,26 @@ paths:
             $ref: '#/definitions/handler.errorResponse'
       summary: Возвращает статус платежа (транзакции) по его ID
       tags:
-      - transactions
+        - transactions
     patch:
       consumes:
-      - application/json
+        - application/json
       description: Статусы "УСПЕХ" и "НЕУСПЕХ" являются терминальными - если платеж
         находится в них, его статус невозможно поменять.
       parameters:
-      - description: ID платежа (транзакции)
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Новый статус транзакции
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/handler.changeTransactionStatusRequest'
+        - description: ID платежа (транзакции)
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: Новый статус транзакции
+          in: body
+          name: input
+          required: true
+          schema:
+            $ref: '#/definitions/handler.changeTransactionStatusRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: ok
@@ -249,5 +249,5 @@ paths:
             $ref: '#/definitions/handler.errorResponse'
       summary: Изменяет статус платежа (транзакции) по его ID
       tags:
-      - transactions
+        - transactions
 swagger: "2.0"
