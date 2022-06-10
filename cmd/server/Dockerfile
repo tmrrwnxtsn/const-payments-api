@@ -5,6 +5,7 @@ RUN apk update && \
             git \
             bash \
             make \
+            dos2unix \
             ca-certificates && \
     rm -rf /var/cache/apk/*
 
@@ -23,6 +24,8 @@ RUN go mod verify
 COPY ../.. .
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
     go build -o ./server ./cmd/server
+
+RUN dos2unix ./cmd/server/entrypoint.sh
 
 
 FROM alpine:latest
