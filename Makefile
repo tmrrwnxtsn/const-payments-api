@@ -19,7 +19,7 @@ run: build  ## запуск собранного бинарника API серв
 
 .PHONY: build-docker
 build-docker: ## сборка образа API сервера
-	docker build -f cmd/server/Dockerfile -t server .
+	docker build -f ./Dockerfile -t server .
 
 .PHONY: run-docker
 run-docker: ## запуск API-сервера в Docker-контейнере на основе собранного образа

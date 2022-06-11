@@ -9,7 +9,7 @@ RUN apk update && \
             ca-certificates && \
     rm -rf /var/cache/apk/*
 
-# установка утилиты migrate, которая будет использоваться в скрипте entrypoint.sh, чтобы запустить миграции к БД
+# установка утилиты migrate, которая будет использоваться в скрипте scripts/entrypoint.sh, чтобы запустить миграции к БД
 ARG MIGRATE_VERSION=4.15.2
 ADD https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.linux-amd64.tar.gz /tmp
 RUN mkdir -p /usr/local/bin/migrate
@@ -25,7 +25,7 @@ COPY . .
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
     go build -o ./server ./cmd/server
 
-RUN dos2unix ./cmd/server/entrypoint.sh
+RUN dos2unix ./scripts/entrypoint.sh
 
 
 FROM alpine:latest
@@ -38,7 +38,7 @@ WORKDIR /app/
 COPY --from=builder /usr/local/bin/migrate /usr/local/bin
 COPY --from=builder /app/migrations ./migrations/
 COPY --from=builder /app/server .
-COPY --from=builder /app/cmd/server/entrypoint.sh .
+COPY --from=builder /app/scripts/entrypoint.sh .
 COPY --from=builder /app/configs/*.yml ./configs/
 
 RUN ls -la
