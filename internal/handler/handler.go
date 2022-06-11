@@ -9,7 +9,7 @@ import (
 	"github.com/tmrrwnxtsn/const-payments-api/internal/service"
 )
 
-// Handler представляет обработчик запросов к API.
+// Handler представляет маршрутизатор.
 type Handler struct {
 	service *service.Services
 	logger  *logrus.Logger
@@ -19,7 +19,7 @@ func NewHandler(services *service.Services, logger *logrus.Logger) *Handler {
 	return &Handler{service: services, logger: logger}
 }
 
-// InitRoutes инициализирует маршруты обработчика запросов.
+// InitRoutes инициализирует маршруты.
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
 
