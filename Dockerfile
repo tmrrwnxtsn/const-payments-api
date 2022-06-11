@@ -26,6 +26,7 @@ RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
     go build -o ./server ./cmd/server
 
 RUN dos2unix ./scripts/entrypoint.sh
+RUN chmod +x ./scripts/entrypoint.sh
 
 
 FROM alpine:latest
