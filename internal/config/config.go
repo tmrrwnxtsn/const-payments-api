@@ -5,6 +5,7 @@ import (
 	"github.com/qiangxue/go-env"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
+	"os"
 )
 
 const (
@@ -30,13 +31,20 @@ func (c Config) Validate() error {
 }
 
 // Load подгружает конфигурационные данные из файла по указанному пути и из переменных окружения.
-func Load(yamlConfigPath string) (*Config, error) {
+func Load(ymlConfigPath string) (*Config, error) {
 	c := Config{
 		BindAddr: defaultBindAddr,
 		LogLevel: defaultLogLevel,
 	}
 
-	bytes, err := ioutil.ReadFile(yamlConfigPath)
+	// загрузка конфигурационных значений из yml-файла
+	cfgFile, err := os.Open(ymlConfigPath)
+	if err != nil {
+		return nil, err
+	}
+	defer cfgFile.Close()
+
+	bytes, err := ioutil.ReadAll(cfgFile)
 	if err != nil {
 		return nil, err
 	}
